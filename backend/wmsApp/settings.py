@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-@%5t*@bkl_qtdds#-udl^f5e$d0++bgzzp-mgt9$i2#22hvgup
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '127.0.0.1:3000']
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -38,25 +38,41 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
-    'corsheaders',
-    'loginApp',
-    
+    'rest_framework', #Para crear API REST
+    'corsheaders', #Para manejo de CORS
+    'rest_framework_simplejwt', #Para autenticacion con JWT
+    'loginApp', #App de login y gestion de usuarios
 
     
 
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
+ 
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    #'corsheaders.middleware.CorsMiddleware',  #habilitar en caso de ser necesario
 ]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000", # Si React corre en http://localhost:3000
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:8000",
+    # ... otras URLs permitidas
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
 
 ROOT_URLCONF = 'wmsApp.urls'
 
