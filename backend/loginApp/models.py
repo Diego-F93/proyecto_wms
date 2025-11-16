@@ -1,5 +1,6 @@
 # Librerias de Django para modelos y autentificacion 
-from django.contrib.auth.models import AbstractUser, Group, UserManager, Permission
+from django.contrib.auth.models import AbstractUser, Group, UserManager
+from django.contrib.auth.hashers import make_password
 from django.db import models
 # Señales para crear grupos automaticamente al migrar la app
 from django.db.models.signals import post_migrate
@@ -53,6 +54,7 @@ class CustomUser(AbstractUser):
     rut = models.CharField(unique=True, max_length=12) # Campo RUT unico
     area = models.CharField(max_length=100, blank=True, null=True, default=None) # Area de trabajo
     is_active = models.BooleanField(default=False) # Estado de cuenta
+    groups = models.ManyToManyField(Group, related_name='customuser_set', blank=True) # Grupos del usuario
 
     
     USERNAME_FIELD = 'email' # Usa el Email como nombre de usuario
@@ -60,6 +62,25 @@ class CustomUser(AbstractUser):
 
     objects = CustomUserManager() # Asigna el manager personalizado
     
+    def _Build_username(self):
+        base = f"{self.first_name.lower()}.{self.last_name.lower()}"
+        if not base.split('.')[0]:  # Si el nombre esta vacio
+            base = "user"
+        username = base
+        i = 1
+        while CustomUser.objects.filter(username=username).exists():
+            username = f"{base}{i}"
+            i += 1
+        return username
+    
+    def save(self, *args, **kwargs):
+        self.password = make_password(self.password)  # Asegura que la contraseña este hasheada
+        if not self.username:
+            self.username = self._Build_username()
+        
+        super().save(*args, **kwargs)
+
+
     def __str__(self): # Representacion en cadena del usuario
         usuario = {
             'id': self.id,
@@ -68,10 +89,26 @@ class CustomUser(AbstractUser):
             'email': self.email,
             'area': self.area,
             'is_active': self.is_active,
-            # 'date_joined': self.date_joined.fromisoformat("YYYY-MM-DDTHH:MM:SS.mmmmmm") if self.date_joined else None,
-            # 'last_login': self.last_login.fromisoformat("YYYY-MM-DDTHH:MM:SS.mmmmmm") if self.last_login else None
         }
         return json.dumps(usuario) # Retorna la informacion del usuario en formato JSON
+    
+
+    
+    def add_to_group(self, group_name): # Metodo para añadir usuario a un grupo
+        try:
+            group = Group.objects.get(name=group_name)
+            self.groups.add(group)
+            self.save()
+        except Group.DoesNotExist:
+            pass
+
+    def remove_from_group(self, group_name): # Metodo para remover usuario de un grupo
+        try:
+            group = Group.objects.get(name=group_name)
+            self.groups.remove(group)
+            self.save()
+        except Group.DoesNotExist:
+            pass
 
 
 

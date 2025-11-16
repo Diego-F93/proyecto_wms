@@ -48,7 +48,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware', #Debe ir al inicio para que funcione correctamente
     'django.middleware.common.CommonMiddleware',
  
     'django.middleware.security.SecurityMiddleware',
@@ -62,7 +62,7 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000", # Si React corre en http://localhost:3000
     "http://127.0.0.1:3000",
-    "http://127.0.0.1:8000",
+    "http://127.0.0.1:8000",# innesesaria 
     # ... otras URLs permitidas
 ]
 

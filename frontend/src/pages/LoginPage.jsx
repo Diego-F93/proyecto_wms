@@ -1,34 +1,25 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
-function Login() {
+function LoginPage() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
     try {
-      const response = await fetch('http://localhost:8000/api/token/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        alert('Inicio de sesión exitoso');
-        console.log(data);
-        // Aquí puedes redirigir o guardar el token JWT, por ejemplo:
-        // localStorage.setItem('token', data.access);
-        // navigate('/dashboard');
-      } else {
-        alert(data.detail || 'Error en las credenciales');
-      }
-    } catch (error) {
-      console.error('Error al iniciar sesión:', error);
-      alert('Error de conexión con el servidor');
-    }
+      await login(email, password);
+      navigate('/dashboard');
+  } catch {
+      setError("Error de inicio de sesión. Verifica tus credenciales.");
+      
+  }
   };
 
   return (
@@ -46,6 +37,12 @@ function Login() {
         <h1 className="text-3xl font-bold tracking-tight text-gray-900">Bienvenido</h1>
         <p className="mt-2 text-sm text-gray-500">Inicia sesión para continuar</p>
       </div>
+
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+          <span className="block sm:inline">{error}</span>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
@@ -110,4 +107,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default LoginPage;
