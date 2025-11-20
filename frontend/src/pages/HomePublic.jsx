@@ -101,7 +101,7 @@ export default function HomePublic() {
                             </button>
                             <ul class="mt-1 space-y-1 pl-9 hidden">
                                 <li><button onClick={() => setSelectedView('productos')} class="block p-2 rounded-md text-sm text-gray-500 hover:bg-gray-100">Productos</button></li>
-                                { user.groups.includes("Administrador") || user.groups.includes("Supervisor") && <div>
+                                { (user.groups.includes("Administrador") || user.groups.includes("Supervisor")) && <div>
                                     <li><button onClick={() => setSelectedView('categorias')} class="block p-2 rounded-md text-sm text-gray-500 hover:bg-gray-100">Categorías</button></li>
                                 </div>
                                 }

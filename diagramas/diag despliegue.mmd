@@ -1,0 +1,23 @@
+graph LR
+    %% Nodos externos
+    C[Cliente Web]
+
+    %% Nodo VPS
+    subgraph VPS [Servidor VPS Linux - Docker Host]
+        subgraph CONT [Contenedores Docker]
+            NGINX[Nginx - Proxy inverso + SPA]
+            API[Django REST API]
+            DB[(MariaDB - Datos)]
+            CERT[Certbot - TLS]
+        end
+    end
+
+    %% Flujo cliente-servidor
+    C -->|HTTPS 443| NGINX
+
+    %% Flujo interno en el VPS
+    NGINX -->|Peticion API| API
+    API -->|Consultas SQL| DB
+
+    %% Gestion certificados
+    CERT -->|Certificados TLS| NGINX

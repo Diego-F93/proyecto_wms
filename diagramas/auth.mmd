@@ -1,0 +1,11 @@
+flowchart TD
+    A[Inicio de sesión] --> B[Usuario ingresa credenciales]
+    B --> C[Enviar POST /api/auth/login]
+    C --> D[API valida usuario y contraseña]
+    D --> E{Credenciales correctas?}
+    E -- No --> F[Responder error 401<br/>Credenciales inválidas]
+    F --> G[Mostrar mensaje al usuario]
+    E -- Sí --> H[Generar token JWT<br/>con rol y permisos]
+    H --> I[Enviar JWT al frontend]
+    I --> J[Guardar JWT en localStorage]
+    J --> K[Acceso a rutas protegidas<br/>según rol RBAC]

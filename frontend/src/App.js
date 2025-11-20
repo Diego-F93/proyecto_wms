@@ -17,6 +17,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           {/* Rutas públicas */}
+          <Route path="" element={<LoginPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/sin-permiso" element={<SinPermiso />} />
           {/* Rutas protegidas genéricas (solo requiere estar logueado) */}

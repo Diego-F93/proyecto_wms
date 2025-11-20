@@ -1,0 +1,32 @@
+flowchart LR
+
+    subgraph CLIENTE [Cliente]
+        U[Usuario Operador - Dispositivo - Navegador]
+    end
+
+    subgraph RED [Red]
+        I[Internet HTTPS]
+    end
+
+    subgraph VPS [Servidor VPS Linux]
+        FW[Firewall y Reglas]
+
+        subgraph DOCKERNET [Red Docker Interna]
+            NGINX[Nginx Proxy Inverso SPA]
+            API[Django REST API]
+            DB[(MariaDB)]
+            CERT[Certbot TLS]
+        end
+    end
+
+    %% Flujo externo
+    U -->|HTTPS 443| I -->|HTTPS 443| FW --> NGINX
+
+    %% Flujo interno
+    NGINX -->|/api| API
+    NGINX -->|Frontend SPA| U
+
+    API -->|Consultas| DB
+
+    %% Certificados
+    CERT -->|Renovacion TLS| NGINX

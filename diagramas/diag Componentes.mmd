@@ -1,0 +1,34 @@
+graph LR
+    subgraph Frontend[Frontend - React SPA]
+        UI_LOGIN[Componente<br/>Login / Autenticación]
+        UI_INV[Componente<br/>Gestión de Inventario]
+        UI_CAT[Componente<br/>Gestión de Catálogo]
+        UI_REP[Componente<br/>Reportes y Dashboard]
+        UI_ADMIN[Componente<br/>Administración / Usuarios]
+    end
+
+    subgraph Backend[Backend - Django REST Framework]
+        AUTH[Servicio<br/>Autenticación & Seguridad<br/>JWT + RBAC]
+        INV[Servicio<br/>Inventario]
+        CAT[Servicio<br/>Catálogo]
+        REP[Servicio<br/>Reportes]
+        ADM[Servicio<br/>Administración]
+    end
+
+    subgraph Data[Persistencia - MariaDB]
+        DB[(Base de Datos WMS<br/>Productos, Movimientos, Usuarios, Logs)]
+    end
+
+    %% Relaciones Frontend → Backend
+    UI_LOGIN -->|/api/auth/*| AUTH
+    UI_INV -->|/api/inventario/*| INV
+    UI_CAT -->|/api/catalogo/*| CAT
+    UI_REP -->|/api/reportes/*| REP
+    UI_ADMIN -->|/api/admin/*| ADM
+
+    %% Relaciones Backend → BD
+    AUTH --> DB
+    INV --> DB
+    CAT --> DB
+    REP --> DB
+    ADM --> DB

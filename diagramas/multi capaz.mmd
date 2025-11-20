@@ -1,0 +1,51 @@
+graph TD
+    %% Capa de Presentación
+    subgraph Capa_Presentacion["Capa de Presentación (Frontend)"]
+        REACT[React SPA<br/>Vistas, formularios, validaciones<br/>Rutas protegidas por rol]
+    end
+
+    %% Capa de Negocio / API
+    subgraph Capa_Negocio["Capa de Negocio / API (Backend)"]
+        AUTH[Servicio de Autenticación<br/>JWT + RBAC]
+        INV[Servicio de Inventario<br/>Movimientos, ajustes, transferencias]
+        CAT[Servicio de Catálogo<br/>Productos, categorías, proveedores]
+        REP[Servicio de Reportes<br/>KPIs, dashboards, exportación]
+        ADM[Servicio de Administración<br/>Usuarios, roles, parámetros]
+    end
+
+    %% Capa de Persistencia
+    subgraph Capa_Datos["Capa de Persistencia (Datos)"]
+        DB[(MariaDB<br/>Productos, movimientos, usuarios, logs)]
+    end
+
+    %% Capa de Infraestructura
+    subgraph Capa_Infra["Capa de Infraestructura"]
+        VPS[VPS Linux<br/>2 vCPU · 4 GB RAM · 80 GB SSD]
+        NGINX[Nginx<br/>Proxy inverso + estáticos SPA]
+        DOCKER[Docker / Docker Compose<br/>Orquestación de servicios]
+        CERT[Certbot<br/>Certificados TLS Let's Encrypt]
+    end
+
+    %% Relaciones entre capas
+    REACT -->|HTTPs REST| AUTH
+    REACT -->|HTTPs REST| INV
+    REACT -->|HTTPs REST| CAT
+    REACT -->|HTTPs REST| REP
+    REACT -->|HTTPs REST| ADM
+
+    AUTH --> DB
+    INV --> DB
+    CAT --> DB
+    REP --> DB
+    ADM --> DB
+
+    %% Infraestructura soportando capas superiores
+    VPS --> DOCKER
+    DOCKER --> NGINX
+    DOCKER --> AUTH
+    DOCKER --> INV
+    DOCKER --> CAT
+    DOCKER --> REP
+    DOCKER --> ADM
+    DOCKER --> DB
+    DOCKER --> CERT

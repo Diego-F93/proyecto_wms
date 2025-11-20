@@ -1,0 +1,12 @@
+flowchart TD
+    A[Usuario con rol Gerencia / Dirección] --> B[Accede a módulo de Reportes]
+    B --> C[Define filtros<br/>fechas, bodega, categoría, etc.]
+    C --> D[Enviar GET /api/reportes<br/>con parámetros]
+    D --> E[API valida JWT y rol]
+    E --> F[Ejecutar consultas agregadas<br/>en BD]
+    F --> G[Preparar datos para dashboard<br/>y/o archivo PDF/Excel]
+    G --> H[Responder datos al frontend]
+    H --> I[Mostrar gráficos / tablas<br/>en la SPA]
+    I --> J{Usuario desea exportar?}
+    J -- Sí --> K[Descargar archivo PDF / Excel]
+    J -- No --> L[Fin del flujo de consulta]

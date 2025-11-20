@@ -1,0 +1,16 @@
+flowchart TD
+    A[Operador autenticado] --> B[Selecciona tipo de movimiento<br/>Entrada / Salida / Ajuste / Transferencia]
+    B --> C[Completa formulario de movimiento]
+    C --> D[Enviar POST /api/inventario/movimientos]
+    D --> E[API valida JWT y permisos RBAC]
+    E --> F{Tipo de movimiento}
+    F -- Entrada --> G[Registrar entrada y sumar stock]
+    F -- Salida --> H[Validar stock suficiente<br/>y restar stock]
+    F -- Ajuste --> I[Aplicar ajuste sobre stock actual]
+    F -- Transferencia --> J[Restar en origen<br/>y sumar en destino]
+    G --> K[Registrar movimiento<br/>en tabla de historial]
+    H --> K
+    I --> K
+    J --> K
+    K --> L[Responder resultado al frontend]
+    L --> M[Mostrar confirmación / error<br/>al operador]
