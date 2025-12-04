@@ -16,13 +16,15 @@ class IsInGroup(BasePermission):
         if user.is_superuser:
             return True
         
-        return user.groups.nombre in self.allowed_groups
+        user_groups_names = user.groups.values_list('name', flat= True)
+
+        return any(group_name in self.allowed_groups for group_name in user_groups_names)
     
-class IsAdminGroup(BasePermission): # Permiso para el grupo Administrador
+class IsAdminGroup(IsInGroup): # Permiso para el grupo Administrador
     allowed_groups = ['Administrador']
 
-class IsSupervisorGroup(BasePermission): # Permiso para el grupo Supervisor
+class IsSupervisorGroup(IsInGroup): # Permiso para el grupo Supervisor
     allowed_groups = ['Supervisor']
 
-class IsOperatorGroup(BasePermission): # Permiso para el grupo Operador
+class IsOperatorGroup(IsInGroup): # Permiso para el grupo Operador
     allowed_groups = ['Operador']

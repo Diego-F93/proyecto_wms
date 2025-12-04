@@ -41,9 +41,11 @@ export function AuthProvider({ children }) {
     // Ajusta estos nombres a tu API
     const token = data.access;
     const loggedUser = data.user;
+    const refreshToken = data.refresh
 
     setAccessToken(token);
     setUser(loggedUser);
+    setRefreshToken(refreshToken);
 
     // Guardar en localStorage 
     localStorage.setItem("access", token);

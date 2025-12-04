@@ -3,8 +3,7 @@ from django.db import models
 # Create your models here.
 
 class Categoria(models.Model):
-    idCategoria = models.AutoField(max_length=8, 
-                                   primary_key=True)
+    idCategoria = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=100, unique=True)
     descripcion = models.TextField(blank=True, null=True)
     state = models.BooleanField(default=False)     

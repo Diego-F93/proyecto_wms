@@ -2,7 +2,8 @@
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from rest_framework import viewsets, permissions
-
+from rest_framework.permissions import IsAuthenticated
+#from django.contrib.auth.decorators import login_required, user_passes_test
 # Modelos y Serializadores
 from .models import Categoria, Producto, Lote
 from .serializer import CategoriaSerializer, ProductoSerializer, LoteSerializer
@@ -15,8 +16,7 @@ from loginApp.permissions import IsAdminGroup, IsSupervisorGroup, IsOperatorGrou
 class CategoriaViewSet(viewsets.ModelViewSet): # Vista para el modelo Categoria
     queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
-    permission_classes = [permissions.IsAuthenticated,
-                           IsAdminGroup | IsSupervisorGroup]  # Permitir acceso sin autenticación
+    permission_classes = [IsAuthenticated  & (IsAdminGroup | IsSupervisorGroup)]  # Permitir acceso sin autenticación
     
 
 class ProductoViewSet(viewsets.ModelViewSet): # Vista para el modelo Producto
