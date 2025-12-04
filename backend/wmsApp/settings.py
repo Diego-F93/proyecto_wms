@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'corsheaders', #Para manejo de CORS
     'rest_framework_simplejwt', #Para autenticacion con JWT
     'loginApp', #App de login y gestion de usuarios
+    'catalogo', #App de gestion de catalogo de productos
 
     
 

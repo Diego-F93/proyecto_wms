@@ -74,7 +74,6 @@ class CustomUser(AbstractUser):
         return username
     
     def save(self, *args, **kwargs):
-        self.password = make_password(self.password)  # Asegura que la contraseña este hasheada
         if not self.username:
             self.username = self._Build_username()
         
