@@ -5,6 +5,7 @@ import {useAuth, isAuthenticated, logout } from '../context/AuthContext';
 import EnConstruccion from '../pages/EnConstruccion'
 import SinPermiso from './SinPermiso';
 import Categoria from './catalogo/categoria';
+import Producto from './catalogo/producto';
 
 
 
@@ -23,7 +24,7 @@ export default function HomePublic() {
             case 'registrar_es':
                 return <EnConstruccion />;
             case 'productos':
-                return <EnConstruccion />;
+                return <Producto />;
             case 'categorias':
                 return <Categoria />;
             case 'generar_reporte':

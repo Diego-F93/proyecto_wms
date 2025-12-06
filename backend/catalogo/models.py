@@ -11,6 +11,7 @@ class Categoria(models.Model):
     productos_disponibles = models.PositiveIntegerField(default=0) #Cantidad de productos disponibles en la Categoria
 
 class Producto(models.Model):
+    
     sku = models.CharField(max_length=50, primary_key=True) #SKU Inico por producto
     nombre = models.CharField(max_length=200, unique=True) #Nombre de producto
     descripcion = models.TextField(blank=True, null=True) #Descripcion de producto

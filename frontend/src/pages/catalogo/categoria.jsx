@@ -1,7 +1,8 @@
 import React, { useEffect, useState} from "react"
 import { Api } from "../../utils/apiHelper"
 
-
+//Falta agregar funcionamientos de formulario de creacion de categorias
+//Falta agregar funcionamiento de boton activar/desactivar
 
 export default function Categoria() {
     const [datos, setDatos] = useState([])
@@ -42,7 +43,7 @@ export default function Categoria() {
                                     { datos.map(m=> (
                                     <tr class="bg-white border-t border-gray-200 hover:bg-gray-50">
                                         <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">{m.nombre}</th>
-                                        <td class="px-6 py-4"> Productos</td>
+                                        <td class="px-6 py-4">{m.productos_disponibles} Productos</td>
                                         <td class="px-6 py-4"><span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Activa</span></td>
                                         <td class="px-6 py-4 text-center">
                                             <button class="font-medium text-indigo-600 hover:underline mr-4" >Editar</button>
