@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from rest_framework import viewsets, permissions
 from rest_framework.permissions import IsAuthenticated
-#from django.contrib.auth.decorators import login_required, user_passes_test
+
 # Modelos y Serializadores
 from .models import Categoria, Producto, Lote
 from .serializer import CategoriaSerializer, ProductoSerializer, LoteSerializer
@@ -26,11 +26,6 @@ class ProductoViewSet(viewsets.ModelViewSet): # Vista para el modelo Producto
                            IsAdminGroup | IsSupervisorGroup]  # Permitir acceso sin autenticación
 
 
-# method_decorator(login_required, name='dispatch')
-# method_decorator(user_passes_test(
-#     lambda u: u.is_staff
-#     or u.groups.filter(name__in=['Administrador', 'Supervisor', 'Operador']).exists()
-#     ), name='dispatch')
 class LoteViewSet(viewsets.ModelViewSet): # Vista para el modelo Lote
     queryset = Lote.objects.all()
     serializer_class = LoteSerializer

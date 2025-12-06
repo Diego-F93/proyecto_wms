@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt', #Para autenticacion con JWT
     'loginApp', #App de login y gestion de usuarios
     'catalogo', #App de gestion de catalogo de productos
+    'operaciones' #App encargada de las operaciones de inventario (entradas, salidas, ajustes)
 
     
 

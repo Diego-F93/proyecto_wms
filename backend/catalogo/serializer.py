@@ -7,13 +7,19 @@ class CategoriaSerializer(serializers.ModelSerializer):
         model = Categoria
         fields = '__all__'
 
-        
-
 
 class ProductoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Producto
-        fields = '__all__'
+        fields = [
+            "sku",
+            "nombre",
+            "descripcion",
+            "idCategoria",
+            "precio_venta",
+            "estado",
+            "stock_actual"
+        ]
 
 class LoteSerializer(serializers.ModelSerializer):
     class Meta:

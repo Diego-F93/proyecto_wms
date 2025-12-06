@@ -4,6 +4,7 @@ import {useAuth, isAuthenticated, logout } from '../context/AuthContext';
 // Importacion de componentes para las diferentes vistas
 import EnConstruccion from '../pages/EnConstruccion'
 import SinPermiso from './SinPermiso';
+import Categoria from './catalogo/categoria';
 
 
 
@@ -24,7 +25,7 @@ export default function HomePublic() {
             case 'productos':
                 return <EnConstruccion />;
             case 'categorias':
-                return <EnConstruccion />;
+                return <Categoria />;
             case 'generar_reporte':
                 return <EnConstruccion />;
             case 'dashboard_ejecutivo':
