@@ -1,10 +1,6 @@
 from django.db import models
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
-from django.conf import settings
-
-
-# Create your models here.
 
 # Modelo de datos Categoria
 class Categoria(models.Model):
@@ -24,7 +20,7 @@ class Producto(models.Model):
 
     @property
     def stock_actual(self): #Funcion para obtener la cantidad total de productos por cada lote
-        agg = self.lotes.filter(disponible = True).aggregate(
+        agg = self.Lote.filter(disponible = True).aggregate(
             total = Coalesce(Sum('cantidad', 0))
             )
         return agg['total']

@@ -20,7 +20,7 @@ class Transaccion(models.Model):
     )
 
     id = models.AutoField(primary_key=True)
-    lote = models.ForeignKey('lote',
+    lote = models.ForeignKey(Lote,
                             on_delete=models.PROTECT,
                             related_name='transacciones')
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL,
