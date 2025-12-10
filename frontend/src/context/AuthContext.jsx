@@ -38,7 +38,6 @@ export function AuthProvider({ children }) {
 
     const data = await response.json();
 
-    // Ajusta estos nombres a tu API
     const token = data.access;
     const loggedUser = data.user;
     const refreshToken = data.refresh

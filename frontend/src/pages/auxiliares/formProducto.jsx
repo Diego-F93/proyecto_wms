@@ -26,9 +26,15 @@ function generarSkuSugerido(categoria, nombre, existingSkus = []) {
   return candidate;
 }
 
-
-export default function ProductoCrearModal({ open, onClose, onSubmit, existingSkus = [] }) {
+export default function ProductoCrearModal({
+  open,
+  onClose,
+  onSubmit,
+  existingSkus = [],
+  initialData = null,
+}) {
   const [form, setForm] = useState({
+    idCategoria: "",
     categoria_nombre: "",
     descripcion: "",
     estado: "",
@@ -37,11 +43,57 @@ export default function ProductoCrearModal({ open, onClose, onSubmit, existingSk
     sku: "",
   });
 
-  const [nombreCategoria, setNombreCategoria] = useState([]); // para poblar select
-  const [errors, setErrors] = useState({}); // estado para errores
+  const [nombreCategoria, setNombreCategoria] = useState([]);
+  const [errors, setErrors] = useState({});
 
-  const { user } = useAuth(); // para validar permisos de usuario
+  const { user } = useAuth();
 
+  const esEdicion = Boolean(initialData); // lo usamos en varios lados
+
+  // Cuando se abre el modal, decidir si es crear o editar
+  useEffect(() => {
+    if (!open) return;
+
+    if (initialData) {
+      setForm({
+        idCategoria:
+          String(initialData.idCategoria) ||
+          String(initialData.idCategoria_id) ||
+          String(initialData.categoria?.idCategoria || ""),
+        categoria_nombre:
+          initialData.categoria_nombre ||
+          initialData.categoria?.nombre ||
+          "",
+        descripcion: initialData.descripcion || "",
+        estado:
+          initialData.estado === true
+            ? "True"
+            : initialData.estado === false
+            ? "False"
+            : "",
+        nombre: initialData.nombre || "",
+        precio_venta: initialData.precio_venta
+          ? String(initialData.precio_venta)
+          : "",
+        sku: initialData.sku || "",
+      });
+    } else {
+      // modo crear
+      setForm({
+        idCategoria: "",
+        categoria_nombre: "",
+        descripcion: "",
+        estado: "",
+        nombre: "",
+        precio_venta: "",
+        sku: "",
+      });
+    }
+
+    setErrors({});
+  }, [open, initialData]);
+
+  // Cargar categorías
   useEffect(() => {
     async function categorias() {
       const setDato = await Api("catalogo/categorias/", "GET");
@@ -54,10 +106,32 @@ export default function ProductoCrearModal({ open, onClose, onSubmit, existingSk
   }, [open]);
 
   const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+
+    // Proteger SKU en modo edición (aunque estará disabled, esto es extra seguro)
+    if (esEdicion && name === "sku") {
+      return;
+    }
+
+    // Si cambia la categoría por ID:
+    if (name === "idCategoria_id") {
+      const categoriaSeleccionada = nombreCategoria.find(
+        (cat) => String(cat.idCategoria) === String(value)
+      );
+
+      setForm((prev) => ({
+        ...prev,
+        idCategoria: value,
+        categoria_nombre: categoriaSeleccionada?.nombre ?? "",
+      }));
+
+      return;
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const puedeCambiarEstado =
@@ -67,23 +141,20 @@ export default function ProductoCrearModal({ open, onClose, onSubmit, existingSk
   const validar = () => {
     const newErrors = {};
 
-    // validar categoría (que exista en la lista)
     const categoriaValida = nombreCategoria.some(
-      (cat) => cat.nombre === form.categoria_nombre
+      (cat) => String(cat.idCategoria) === String(form.idCategoria)
     );
 
-    if (!form.categoria_nombre) {
+    if (!form.idCategoria) {
       newErrors.categoria_nombre = "La categoría es obligatoria.";
     } else if (!categoriaValida) {
       newErrors.categoria_nombre = "Debe seleccionar una categoría válida.";
     }
 
-    // validar nombre
     if (!form.nombre.trim()) {
       newErrors.nombre = "El nombre es obligatorio.";
     }
 
-    // validar precio POSITIVO
     const precio = Number(form.precio_venta);
 
     if (!form.precio_venta) {
@@ -94,7 +165,6 @@ export default function ProductoCrearModal({ open, onClose, onSubmit, existingSk
       newErrors.precio_venta = "El precio debe ser mayor a 0.";
     }
 
-    // validar estado SOLO si el usuario puede verlo/cambiarlo
     if (puedeCambiarEstado && !form.estado) {
       newErrors.estado = "Debe seleccionar un estado.";
     }
@@ -104,25 +174,37 @@ export default function ProductoCrearModal({ open, onClose, onSubmit, existingSk
   };
 
   const handleSubmit = (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!validar()) return;
+    if (!validar()) return;
 
-  let skuFinal = form.sku.trim()
-    ? form.sku
-    : generarSkuSugerido(form.categoria_nombre, form.nombre, existingSkus);
+    // En edición, se mantiene siempre el SKU existente.
+    const skuFinal = form.sku.trim()
+      ? form.sku
+      : generarSkuSugerido(
+          form.categoria_nombre,
+          form.nombre,
+          existingSkus
+        );
 
-  onSubmit({
-    ...form,
-    precio_venta: Number(form.precio_venta),
-    sku: skuFinal,
-  });
+    onSubmit({
+      ...form,
+      precio_venta: Number(form.precio_venta),
+      sku: skuFinal,
+    });
 
-  onClose();
-};
-  useEffect(() => {
-  // solo generar SKU si el usuario NO ingresó uno manualmente
-  if (!form.sku.trim()) {
+    onClose();
+  };
+
+  // Generar SKU solo en creación y si el usuario no escribió uno
+useEffect(() => {
+  if (esEdicion) return;
+
+  if (
+    !form.sku.trim() &&
+    form.categoria_nombre.trim() &&
+    form.nombre.trim()
+  ) {
     const sugerido = generarSkuSugerido(
       form.categoria_nombre,
       form.nombre,
@@ -133,12 +215,13 @@ export default function ProductoCrearModal({ open, onClose, onSubmit, existingSk
       sku: sugerido,
     }));
   }
-}, [form.categoria_nombre, form.nombre, existingSkus]);
-  
+}, [form.categoria_nombre, form.nombre, existingSkus, esEdicion]);
 
   return (
     <Modal open={open} onClose={onClose}>
-      <h2 className="text-xl font-bold mb-4">Crear Producto</h2>
+      <h2 className="text-xl font-bold mb-4">
+        {esEdicion ? "Editar Producto" : "Crear Producto"}
+      </h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* NOMBRE */}
@@ -160,14 +243,14 @@ export default function ProductoCrearModal({ open, onClose, onSubmit, existingSk
         <div>
           <label className="block font-medium">Categoría</label>
           <select
-            name="categoria_nombre"
-            value={form.categoria_nombre}
+            name="idCategoria_id"
+            value={form.idCategoria}
             onChange={handleChange}
             className="w-full p-2 border rounded"
           >
             <option value="">Seleccione una categoría...</option>
             {nombreCategoria.map((cat) => (
-              <option key={cat.id} value={cat.nombre}>
+              <option key={cat.idCategoria} value={cat.idCategoria}>
                 {cat.nombre}
               </option>
             ))}
@@ -179,19 +262,31 @@ export default function ProductoCrearModal({ open, onClose, onSubmit, existingSk
           )}
         </div>
 
-        {/* SKU (por ahora obligatorio, luego lo hacemos opcional/autogenerado) */}
+        {/* SKU */}
         <div>
-        <label className="block font-medium">
-            SKU <span className="text-gray-500 text-sm">(opcional)</span>
-        </label>
-        <input
+          <label className="block font-medium">
+            SKU{" "}
+            {!esEdicion && (
+              <span className="text-gray-500 text-sm">
+                (opcional, autogenerado)
+              </span>
+            )}
+          </label>
+          <input
             type="text"
             name="sku"
             value={form.sku}
             onChange={handleChange}
-            className="w-full p-2 border rounded"
-            placeholder="Se autogenerará si lo deja vacío"
-        />
+            className={`w-full p-2 border rounded ${
+              esEdicion ? "bg-gray-100 cursor-not-allowed" : ""
+            }`}
+            placeholder={
+              esEdicion
+                ? ""
+                : "Se autogenerará si lo deja vacío"
+            }
+            disabled={esEdicion} //  bloqueado en modo edición
+          />
         </div>
 
         {/* PRECIO */}
@@ -213,7 +308,7 @@ export default function ProductoCrearModal({ open, onClose, onSubmit, existingSk
           )}
         </div>
 
-        {/* ESTADO (solo para Admin / Supervisor) */}
+        {/* ESTADO */}
         {puedeCambiarEstado && (
           <div>
             <label className="block font-medium">Estado</label>

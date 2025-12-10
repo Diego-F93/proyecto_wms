@@ -36,7 +36,7 @@ export default function Categoria() {
                                         <th scope="col" class="px-6 py-3 font-medium">Nombre de la Categoría</th>
                                         <th scope="col" class="px-6 py-3 font-medium">Cantidad de Productos</th>
                                         <th scope="col" class="px-6 py-3 font-medium">Estado</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-center">Acciones</th>
+                                        <th scope="2 col" class="px-6 py-3 font-medium text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -44,7 +44,11 @@ export default function Categoria() {
                                     <tr class="bg-white border-t border-gray-200 hover:bg-gray-50">
                                         <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">{m.nombre}</th>
                                         <td class="px-6 py-4">{m.productos_disponibles} Productos</td>
-                                        <td class="px-6 py-4"><span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Activa</span></td>
+
+                                        <td class="px-6 py-4"><span className={`text-xs font-medium px-2.5 py-0.5 rounded-full`+
+                                             (m.estado ? "bg-green-100 text-green-800"  // activo
+                                                        : "bg-red-100 text-red-800"       // Inactivo
+                                            ) }>{m.estado ? "Activa": "Inactiva"}</span></td>
                                         <td class="px-6 py-4 text-center">
                                             <button class="font-medium text-indigo-600 hover:underline mr-4" >Editar</button>
                                             <button class="font-medium text-red-600 hover:underline">Desactivar</button>

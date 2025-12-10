@@ -15,7 +15,7 @@ function LoginPage() {
     setError("");
     try {
       await login(email, password);
-      navigate('/dashboard');
+      navigate('/main');
   } catch {
       setError("Error de inicio de sesión. Verifica tus credenciales.");
       

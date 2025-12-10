@@ -47,7 +47,7 @@ backend.interceptors.response.use(
     if (!refreshToken) {
       // No hay refresh → forzamos logout
       // Aquí puedes redirigir al login
-      // window.location.href = "/login";
+      window.location.href = "/login";
       return Promise.reject(error);
     }
 
@@ -84,7 +84,7 @@ backend.interceptors.response.use(
       // Refresh falló → limpiamos y redirigimos a login
       localStorage.removeItem("access");
       localStorage.removeItem("refresh");
-      // window.location.href = "/login";
+      window.location.href = "/login";
       return Promise.reject(err);
     } finally {
       isRefreshing = false;
