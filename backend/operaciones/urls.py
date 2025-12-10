@@ -1,12 +1,7 @@
-# Importaciones necesarias para las rutas
-from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from .views import OperacionInventarioViewSet
 
-# Importacion de las vistas
-from .views import TransaccionViewSet
+router = DefaultRouter()
+router.register(r'inventario/operaciones', OperacionInventarioViewSet, basename='operaciones-inventario')
 
-routers = DefaultRouter()
-routers.register(r'transaccion', TransaccionViewSet, basename='transaccion')
-urlpatterns = [
-     path('', include(routers.urls) ),
-]
+urlpatterns = router.urls

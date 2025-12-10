@@ -89,5 +89,9 @@ class ProductoViewSet(viewsets.ModelViewSet): # Vista para el modelo Producto
 class LoteViewSet(viewsets.ModelViewSet): # Vista para el modelo Lote
     queryset = Lote.objects.all()
     serializer_class = LoteSerializer
-    permission_classes = [permissions.IsAuthenticated,
-                           IsAdminGroup | IsSupervisorGroup | IsOperatorGroup]  
+    
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [permissions.IsAuthenticated,
+                                IsAdminGroup | IsSupervisorGroup | IsOperatorGroup]
+    
