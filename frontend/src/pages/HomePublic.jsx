@@ -6,6 +6,9 @@ import EnConstruccion from '../pages/EnConstruccion'
 import SinPermiso from './SinPermiso';
 import Categoria from './catalogo/categoria';
 import Producto from './catalogo/producto';
+import DashboardPrincipal from './dashboard/Dashboardprincipal';
+import DashboardEjecutivo from './dashboard/DashboardEjecutivo';
+
 
 
 
@@ -17,7 +20,7 @@ export default function HomePublic() {
     const rendercontent = () => {
         switch (SelectedView) {
             case 'dashboard':
-                return <EnConstruccion />;
+                return <DashboardPrincipal />;
             
             case 'lista_movimientos':
                 return <SinPermiso />;
@@ -30,7 +33,7 @@ export default function HomePublic() {
             case 'generar_reporte':
                 return <EnConstruccion />;
             case 'dashboard_ejecutivo':
-                return <EnConstruccion />;
+                return <DashboardEjecutivo/>;
             case 'usuarios_y_roles':
                 return <EnConstruccion />;
             case 'alertas_y_umbrales':

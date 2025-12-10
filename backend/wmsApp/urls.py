@@ -18,9 +18,11 @@ from django.contrib import admin
 from django.urls import include, path
 from loginApp import urls as login_urls
 from catalogo import urls as catalogo_urls
+from operaciones import urls as operaciones_urls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(login_urls)),
     path('api/catalogo/', include(catalogo_urls)),  # Rutas para la app de catalogo
+    path('api/operacion/', include(operaciones_urls)), # Rutas para la app de operaciones
 ]
