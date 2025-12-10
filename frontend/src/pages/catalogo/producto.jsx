@@ -129,6 +129,7 @@ export default function Producto() {
               </svg>
               <span>Agregar Producto</span>
             </button>
+            
           </div>
         </div>
 

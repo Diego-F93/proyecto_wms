@@ -17,7 +17,29 @@ from loginApp.permissions import IsAdminGroup, IsSupervisorGroup, IsOperatorGrou
 class CategoriaViewSet(viewsets.ModelViewSet): # Vista para el modelo Categoria
     queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
-    permission_classes = [IsAuthenticated  & (IsAdminGroup | IsSupervisorGroup)] 
+    #permission_classes = [IsAuthenticated  & (IsAdminGroup | IsSupervisorGroup)] 
+
+    def destroy(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+        except Categoria.DoesNotExist:
+            return Response(
+                {"detail": "Categoria no encontrada."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {"detail": f"Error inesperado: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Alternar estado
+        instance.estado = not instance.estado
+        instance.save()
+
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
     
 
 class ProductoViewSet(viewsets.ModelViewSet): # Vista para el modelo Producto
