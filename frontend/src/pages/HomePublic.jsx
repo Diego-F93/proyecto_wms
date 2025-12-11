@@ -12,8 +12,6 @@ import OperacionInventario from './inventario/operacionInventario';
 import HistorialMovimientos from './inventario/movimientos';
 
 
-
-
 export default function HomePublic() {
     
     const { user, isAuthenticated, logout } = useAuth();
@@ -48,6 +46,23 @@ export default function HomePublic() {
         }
     };
 
+function obtenerImagenRol(rol) {
+  switch (rol) {
+    case "Administrador":
+      return "/icons/imgAdmin.png";
+
+    case "Supervisor":
+      return "/icons/imgSupervisor.png";
+
+    case "Operador":
+      return "/icons/imgOperador.png";
+
+    default:
+      return "/icons/imgDefault.png";
+  }
+};
+
+
 // Script para mostrar la fecha actual
     const today = new Date();
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -62,6 +77,8 @@ export default function HomePublic() {
     }
 
     if (!isAuthenticated) return null;
+
+
 
     return (
         <div class="flex h-screen">
@@ -171,7 +188,9 @@ export default function HomePublic() {
            <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-end px-8">
                  <div class="text-right flex ">
                     <div class="img pro">
-                        <img src="https://i.pravatar.cc/40" alt="Avatar" class="w-10 h-10 rounded-full inline-block">
+                        <img src={obtenerImagenRol(user.groups.join(","))} 
+                        alt="Rol del usuario" 
+                        class="w-10 h-10 rounded-full inline-block">
                         {/* Imagen de usuario /// reemplazar con la del usuario actual */}
                         </img>
                     </div>

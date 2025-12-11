@@ -10,6 +10,9 @@ from .serializers import IngresoOperacionInventarioSerializer
 from .serializersGet import OperacionInventario, OperacionInventarioListSerializer
 from .services import registrar_ingreso_lotes
 
+from django.utils.dateparse import parse_date
+from django.db.models import Prefetch
+
 from .models import Transaccion 
 
 class OperacionInventarioViewSet(viewsets.ViewSet):
@@ -105,12 +108,8 @@ class OperacionInventarioViewSet(viewsets.ViewSet):
             status=status.HTTP_201_CREATED
         )
 
-from rest_framework import viewsets, permissions
-from django.utils.dateparse import parse_date
-from django.db.models import Prefetch
 
-
-class OperacionInventarioViewSet(viewsets.ReadOnlyModelViewSet):
+class OperacionInventarioListaViewSet(viewsets.ReadOnlyModelViewSet):
     """
     GET /api/operaciones/
     GET /api/operaciones/{id}/

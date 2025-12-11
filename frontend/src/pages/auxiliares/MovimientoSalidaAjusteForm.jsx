@@ -88,7 +88,7 @@ const MovimientoSalidaAjusteForm = ({ movementType }) => {
 
     try {
       const data = await Api(
-        `inventario/lotes-disponibles/?sku=${encodeURIComponent(sku)}`,
+        `inventario/lotes/${(sku)}`,
         "GET"
       );
       // Se asume que el backend ya los ordena por FIFO (fechaEntrada ascendente)

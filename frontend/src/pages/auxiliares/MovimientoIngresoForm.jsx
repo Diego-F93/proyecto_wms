@@ -469,7 +469,7 @@ const MovimientoIngresoForm  = ({ movementType }) => {
                             <input
                               type="number"
                               min="0"
-                              step="0.01"
+                              step="10"
                               value={row.precio_compra}
                               onChange={(e) =>
                                 handleRowChange(
