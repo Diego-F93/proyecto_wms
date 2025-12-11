@@ -8,6 +8,7 @@ import Categoria from './catalogo/categoria';
 import Producto from './catalogo/producto';
 import DashboardPrincipal from './dashboard/Dashboardprincipal';
 import DashboardEjecutivo from './dashboard/DashboardEjecutivo';
+import OperacionInventario from './inventario/operacionInventario';
 
 
 
@@ -25,7 +26,7 @@ export default function HomePublic() {
             case 'lista_movimientos':
                 return <SinPermiso />;
             case 'registrar_es':
-                return <EnConstruccion />;
+                return <OperacionInventario />;
             case 'productos':
                 return <Producto />;
             case 'categorias':

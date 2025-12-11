@@ -3,6 +3,8 @@
 import uuid
 from django.db import transaction as db_transaction
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from django.utils import timezone
+from django.utils.crypto import get_random_string
 
 
 from .models import (
@@ -15,12 +17,19 @@ from .models import (
 
 def _generar_codigo_operacion(tipo: str) -> str:
     """
-    Genera un código único y legible para la operación.
-    Ejemplo: OP-ENT-550e8400-e29b-41d4-a716-446655440000
+    Genera un código corto y único para la operación.
+    Ej: OP-ENT-20251210-AB12  (20 caracteres aprox)
     """
     prefijo = "OP"
-    return f"{prefijo}-{tipo[:3]}-{uuid.uuid4()}"
+    tipo_corto = (tipo or "")[:3].upper()  # ENT / SAL / AJU
+    fecha = timezone.now().strftime("%Y%m%d")  # 8 chars
+    sufijo = get_random_string(4).upper()     # 4 chars
 
+    # OP-ENT-20251210-AB12
+    codigo = f"{prefijo}-{tipo_corto}-{fecha}-{sufijo}"
+
+    # Solo por seguridad, recortamos a 40 chars máximo
+    return codigo[:40]
 
 def registrar_ingreso_lotes(data: dict, usuario):
     """

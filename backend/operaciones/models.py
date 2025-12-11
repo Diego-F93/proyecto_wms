@@ -39,14 +39,14 @@ class OperacionInventario(models.Model):
     )
 
     documento_referencia = models.CharField(
-        max_length=50,
+        max_length=100,
         blank=True,
         null=True,
         help_text="OC, guía de despacho, factura, etc."
     )
 
     motivo_general = models.CharField(
-        max_length=100,
+        max_length=255,
         blank=True,
         null=True
     )
@@ -109,7 +109,7 @@ class Transaccion(models.Model):
     cantidad = models.PositiveBigIntegerField(default=1)
 
     motivo = models.CharField(
-        max_length=50,
+        max_length=100,
         blank=True,
         null=True
     )
