@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 
+
 from catalogo.models import Lote, Producto
 
 class OperacionInventario(models.Model):

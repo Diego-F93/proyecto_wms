@@ -28,7 +28,8 @@ class ProductoSerializer(serializers.ModelSerializer):
             "categoria_nombre",
             "precio_venta",
             "estado",
-            "stock_actual"
+            "stock_actual",
+            "lotes_disponibles",
         ]
     def get_categoria_nombre(self, obj):
         return obj.idCategoria.nombre

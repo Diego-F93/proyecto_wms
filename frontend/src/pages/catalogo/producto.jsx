@@ -149,6 +149,9 @@ export default function Producto() {
                     Categoría
                   </th>
                   <th scope="col" className="px-6 py-3 font-medium">
+                    Stock Actual
+                  </th>
+                  <th scope="col" className="px-6 py-3 font-medium">
                     Precio Venta
                   </th>
                   <th scope="col" className="px-6 py-3 font-medium">
@@ -180,6 +183,7 @@ export default function Producto() {
                     <td className="px-6 py-4">
                       {m.categoria_nombre ?? m.categoria?.nombre ?? "-"}
                     </td>
+                    <td className="px-6 py-4 font-bold">{m.stock_actual}</td>
                     <td className="px-6 py-4 font-bold">{m.precio_venta}</td>
                     <td className="px-6 py-4">
                       <span

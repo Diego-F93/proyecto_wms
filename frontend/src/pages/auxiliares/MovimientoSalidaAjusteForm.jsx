@@ -1,32 +1,33 @@
+// src/components/inventario/MovimientoSalidaAjusteForm.jsx
 import React, { useState, useEffect } from "react";
 import { Api } from "../../utils/apiHelper";
 
-const MovimientoForm = ({ movementType }) => {
-  // Datos cabecera
+const MovimientoSalidaAjusteForm = ({ movementType }) => {
+  // Cabecera
   const [documentRef, setDocumentRef] = useState("");
   const [motivoGeneral, setMotivoGeneral] = useState("");
 
-  // Productos disponibles (SKU + nombre)
+  // Productos y lotes
   const [products, setProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
 
-  // Filas de lotes
-  const [rows, setRows] = useState([
-    {
-      sku: "",
-      hasSerial: false,
-      n_serie: "",
-      cantidad: 1,
-      motivo: "",
-    },
-  ]);
+  // Map { sku: [lotes...] }
+  const [availableLotsBySku, setAvailableLotsBySku] = useState({});
+
+  const filaBase = {
+    sku: "",
+    loteId: "",
+    cantidad: 1,
+    motivo: "",
+  };
+
+  const [rows, setRows] = useState([filaBase]);
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
   const movementLabels = {
-    entrada: "Entrada",
     salida: "Salida",
     ajuste_pos: "Ajuste Positivo",
     ajuste_neg: "Ajuste Negativo",
@@ -34,13 +35,14 @@ const MovimientoForm = ({ movementType }) => {
 
   // Mapeo a los tipos del backend
   const movementMapping = {
-    entrada: { tipo_operacion: "ENTRADA", tipo_movimiento: "ENTRADA" },
     salida: { tipo_operacion: "SALIDA", tipo_movimiento: "SALIDA" },
     ajuste_pos: { tipo_operacion: "AJUSTE", tipo_movimiento: "AJUSTE_POST" },
     ajuste_neg: { tipo_operacion: "AJUSTE", tipo_movimiento: "AJUSTE_NEG" },
   };
 
-  // --- Cargar productos vía Api helper ---
+  const mapping = movementMapping[movementType];
+
+  // --- Cargar productos ---
   const ObtenerProductos = async () => {
     try {
       setLoadingProducts(true);
@@ -57,27 +59,48 @@ const MovimientoForm = ({ movementType }) => {
     ObtenerProductos();
   }, []);
 
-  // Limpiar mensajes cuando cambia el tipo de movimiento
   useEffect(() => {
     setErrorMsg("");
     setSuccessMsg("");
   }, [movementType]);
 
-  // --- Helpers productos ---
-
   const getProductName = (sku) => {
     if (!sku) return "";
-    const product = products.find((p) => p.sku === sku);
-    return product ? product.nombre : "";
+    const p = products.find((prod) => prod.sku === sku);
+    return p ? p.nombre : "";
+  };
+
+  const getLotesForSku = (sku) => {
+    if (!sku) return [];
+    return availableLotsBySku[sku] || [];
+  };
+
+  const getSelectedLote = (row) => {
+    const lotes = getLotesForSku(row.sku);
+    return lotes.find((l) => String(l.idLote) === String(row.loteId));
+  };
+
+  // --- Cargar lotes por SKU (FIFO desde backend) ---
+  const fetchLotesBySku = async (sku) => {
+    if (!sku) return;
+    // Cache simple: si ya tenemos los lotes, no volvemos a pedir
+    if (availableLotsBySku[sku]) return;
+
+    try {
+      const data = await Api(
+        `inventario/lotes-disponibles/?sku=${encodeURIComponent(sku)}`,
+        "GET"
+      );
+      // Se asume que el backend ya los ordena por FIFO (fechaEntrada ascendente)
+      setAvailableLotsBySku((prev) => ({ ...prev, [sku]: data }));
+    } catch (error) {
+      console.error(`Error al cargar lotes para SKU ${sku}`, error);
+    }
   };
 
   // --- Helpers filas ---
-
   const addRow = () => {
-    setRows((prev) => [
-      ...prev,
-      { sku: "", hasSerial: false, n_serie: "", cantidad: 1, motivo: "" },
-    ]);
+    setRows((prev) => [...prev, { ...filaBase }]);
   };
 
   const removeRow = (index) => {
@@ -90,31 +113,17 @@ const MovimientoForm = ({ movementType }) => {
         if (i !== index) return row;
         const updated = { ...row };
 
-        if (field === "hasSerial") {
-          const checked = value;
-          updated.hasSerial = checked;
-          if (checked) {
-            updated.cantidad = 1;
-          } else {
-            updated.n_serie = "";
-          }
-        } else if (field === "cantidad") {
-          const cant = Number(value) || 0;
-          updated.cantidad = cant;
-          if (cant > 1) {
-            updated.hasSerial = false;
-            updated.n_serie = "";
-          }
-        } else if (field === "n_serie") {
-          updated.n_serie = value;
-          if (value && value.trim() !== "") {
-            updated.hasSerial = true;
-            updated.cantidad = 1;
-          } else {
-            updated.hasSerial = false;
-          }
-        } else if (field === "sku") {
+        if (field === "sku") {
           updated.sku = value;
+          updated.loteId = "";
+          updated.cantidad = 1;
+          // disparamos carga de lotes disponibles
+          fetchLotesBySku(value);
+        } else if (field === "loteId") {
+          updated.loteId = value;
+          // opcional: podrías ajustar cantidad por defecto al máximo disponible
+        } else if (field === "cantidad") {
+          updated.cantidad = Number(value) || 0;
         } else {
           updated[field] = value;
         }
@@ -125,15 +134,13 @@ const MovimientoForm = ({ movementType }) => {
   };
 
   // --- Submit ---
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
     setSuccessMsg("");
 
-    const mapping = movementMapping[movementType];
     if (!mapping) {
-      setErrorMsg("Tipo de movimiento no válido.");
+      setErrorMsg("Tipo de movimiento no válido para este formulario.");
       return;
     }
 
@@ -142,7 +149,7 @@ const MovimientoForm = ({ movementType }) => {
       return;
     }
 
-    // Validación por fila
+    // Validaciones
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
 
@@ -151,26 +158,24 @@ const MovimientoForm = ({ movementType }) => {
         return;
       }
 
-      if (row.hasSerial) {
-        if (!row.n_serie || row.n_serie.trim() === "") {
-          setErrorMsg(
-            `Fila ${i + 1}: si el lote tiene número de serie, debes ingresarlo.`
-          );
-          return;
-        }
-        if (Number(row.cantidad) !== 1) {
-          setErrorMsg(
-            `Fila ${i + 1}: para lotes con número de serie, la cantidad debe ser exactamente 1.`
-          );
-          return;
-        }
-      } else {
-        if (!row.cantidad || Number(row.cantidad) <= 0) {
-          setErrorMsg(
-            `Fila ${i + 1}: la cantidad debe ser mayor que 0 si no tiene número de serie.`
-          );
-          return;
-        }
+      if (!row.loteId) {
+        setErrorMsg(`Fila ${i + 1}: debes seleccionar un lote.`);
+        return;
+      }
+
+      if (!row.cantidad || Number(row.cantidad) <= 0) {
+        setErrorMsg(
+          `Fila ${i + 1}: la cantidad debe ser mayor que 0 para la salida/ajuste.`
+        );
+        return;
+      }
+
+      const lote = getSelectedLote(row);
+      if (lote && Number(row.cantidad) > Number(lote.cantidad)) {
+        setErrorMsg(
+          `Fila ${i + 1}: la cantidad (${row.cantidad}) no puede superar el stock disponible del lote (${lote.cantidad}).`
+        );
+        return;
       }
     }
 
@@ -180,35 +185,28 @@ const MovimientoForm = ({ movementType }) => {
       documento_referencia: documentRef || null,
       motivo_general: motivoGeneral || null,
       lotes: rows.map((row) => ({
-        sku: row.sku.trim(),
-        n_serie: row.hasSerial ? row.n_serie.trim() : null,
-        cantidad: row.hasSerial ? 1 : Number(row.cantidad),
+        lote_id: row.loteId, // IMPORTANTE: el backend debe usar este id de lote
+        cantidad: Number(row.cantidad),
         motivo: row.motivo || null,
-        fechaVencimiento: null,
-        precio_compra: null,
       })),
     };
 
     try {
       setLoading(true);
 
-      const data = await Api("operacion/ingreso/", "POST", payload);
-      console.log("Respuesta backend:", data);
+      // Ajusta la URL al endpoint real de tu backend para salidas/ajustes
+      const data = await Api("operacion/movimiento/", "POST", payload);
+      console.log("Respuesta backend (salida/ajuste):", data);
 
-      // data viene directamente de Api (ya es el JSON), por eso no usamos response.data
-      const codigo =
-        data?.operacion?.codigo || data?.codigo || data?.id || "sin código";
+      const codigo = data?.codigo || data?.id || "sin código";
 
       setSuccessMsg(
         `Operación ${codigo} (${movementLabels[movementType]}) registrada correctamente.`
       );
 
-      setRows([
-        { sku: "", hasSerial: false, n_serie: "", cantidad: 1, motivo: "" },
-      ]);
+      setRows([{ ...filaBase }]);
     } catch (err) {
       console.error(err);
-      // Como Api probablemente lanza un Error normal, no asumimos err.response
       const detalle =
         err?.response?.data?.detail ||
         err?.message ||
@@ -222,9 +220,7 @@ const MovimientoForm = ({ movementType }) => {
   const handleReset = () => {
     setDocumentRef("");
     setMotivoGeneral("");
-    setRows([
-      { sku: "", hasSerial: false, n_serie: "", cantidad: 1, motivo: "" },
-    ]);
+    setRows([{ ...filaBase }]);
     setErrorMsg("");
     setSuccessMsg("");
   };
@@ -263,7 +259,7 @@ const MovimientoForm = ({ movementType }) => {
               value={documentRef}
               onChange={(e) => setDocumentRef(e.target.value)}
               className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="Ej: OC-2025-10-123"
+              placeholder="Ej: GD-2025-10-001"
             />
           </div>
 
@@ -281,7 +277,7 @@ const MovimientoForm = ({ movementType }) => {
               value={motivoGeneral}
               onChange={(e) => setMotivoGeneral(e.target.value)}
               className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="Ej: Ajuste por conteo físico"
+              placeholder="Ej: Despacho a cliente / Ajuste por merma"
             />
           </div>
         </div>
@@ -297,7 +293,7 @@ const MovimientoForm = ({ movementType }) => {
               onClick={addRow}
               className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md border border-indigo-600 text-indigo-600 hover:bg-indigo-50"
             >
-              + Agregar lote
+              + Agregar línea
             </button>
           </div>
 
@@ -309,13 +305,13 @@ const MovimientoForm = ({ movementType }) => {
                     Producto
                   </th>
                   <th className="px-3 py-2 text-left font-medium text-gray-700">
-                    SKU
+                    Lote
                   </th>
-                  <th className="px-3 py-2 text-center font-medium text-gray-700">
-                    Con N° Serie
+                  <th className="px-3 py-2 text-right font-medium text-gray-700">
+                    Stock lote
                   </th>
                   <th className="px-3 py-2 text-left font-medium text-gray-700">
-                    N° Serie
+                    Fec. vencimiento
                   </th>
                   <th className="px-3 py-2 text-right font-medium text-gray-700">
                     Cantidad
@@ -331,10 +327,12 @@ const MovimientoForm = ({ movementType }) => {
               <tbody className="bg-white divide-y divide-gray-100">
                 {rows.map((row, index) => {
                   const productName = getProductName(row.sku);
+                  const lotes = getLotesForSku(row.sku);
+                  const selectedLote = getSelectedLote(row);
 
                   return (
                     <tr key={index}>
-                      {/* Columna: Producto (select por nombre) */}
+                      {/* Producto */}
                       <td className="px-3 py-2 align-top">
                         <select
                           value={row.sku}
@@ -355,58 +353,54 @@ const MovimientoForm = ({ movementType }) => {
                             </option>
                           ))}
                         </select>
+                        {productName && (
+                          <p className="mt-1 text-[11px] text-gray-400">
+                            {row.sku} · {productName}
+                          </p>
+                        )}
                       </td>
 
-                      {/* Columna: SKU (autocompletado, solo lectura) */}
+                      {/* Lote */}
                       <td className="px-3 py-2 align-top">
-                        <input
-                          type="text"
-                          value={row.sku || ""}
-                          readOnly
-                          className="w-full px-2 py-1 border border-gray-200 rounded-md bg-gray-50 text-gray-700"
-                          placeholder="SKU"
-                        />
-                        <p className="mt-1 text-[11px] text-gray-400">
-                          {productName && row.sku
-                            ? `${row.sku} · ${productName}`
-                            : ""}
-                        </p>
-                      </td>
-
-                      {/* Check: con N° serie */}
-                      <td className="px-3 py-2 align-top text-center">
-                        <input
-                          type="checkbox"
-                          checked={row.hasSerial}
+                        <select
+                          value={row.loteId}
                           onChange={(e) =>
-                            handleRowChange(
-                              index,
-                              "hasSerial",
-                              e.target.checked
-                            )
+                            handleRowChange(index, "loteId", e.target.value)
                           }
-                          className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
-                        />
+                          disabled={!row.sku || lotes.length === 0}
+                          className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:bg-gray-100 disabled:text-gray-400"
+                        >
+                          <option value="">
+                            {row.sku
+                              ? lotes.length > 0
+                                ? "Seleccionar lote"
+                                : "Sin lotes disponibles"
+                              : "Selecciona un producto primero"}
+                          </option>
+                          {lotes.map((l) => (
+                            <option key={l.idLote} value={l.idLote}>
+                              {`Lote ${l.idLote} · ${
+                                l.n_serie ? `Serie ${l.n_serie} · ` : ""
+                              }Cant: ${l.cantidad}`}
+                            </option>
+                          ))}
+                        </select>
                       </td>
 
-                      {/* N° serie */}
+                      {/* Stock del lote */}
+                      <td className="px-3 py-2 align-top text-right">
+                        <span className="inline-block min-w-[3rem]">
+                          {selectedLote ? selectedLote.cantidad : "-"}
+                        </span>
+                      </td>
+
+                      {/* Fecha de vencimiento */}
                       <td className="px-3 py-2 align-top">
-                        <input
-                          type="text"
-                          value={row.n_serie}
-                          onChange={(e) =>
-                            handleRowChange(index, "n_serie", e.target.value)
-                          }
-                          disabled={!row.hasSerial}
-                          className={`w-full px-2 py-1 border rounded-md focus:outline-none focus:ring-1 ${
-                            row.hasSerial
-                              ? "border-gray-300 focus:ring-indigo-500"
-                              : "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed"
-                          }`}
-                          placeholder={
-                            row.hasSerial ? "Ej: SN-0001" : "No aplica"
-                          }
-                        />
+                        <span className="text-xs text-gray-600">
+                          {selectedLote && selectedLote.fechaVencimiento
+                            ? selectedLote.fechaVencimiento
+                            : "—"}
+                        </span>
                       </td>
 
                       {/* Cantidad */}
@@ -418,12 +412,7 @@ const MovimientoForm = ({ movementType }) => {
                           onChange={(e) =>
                             handleRowChange(index, "cantidad", e.target.value)
                           }
-                          disabled={row.hasSerial}
-                          className={`w-24 px-2 py-1 border rounded-md text-right focus:outline-none focus:ring-1 ${
-                            row.hasSerial
-                              ? "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed"
-                              : "border-gray-300 focus:ring-indigo-500"
-                          }`}
+                          className="w-24 px-2 py-1 border rounded-md text-right focus:outline-none focus:ring-1 border-gray-300 focus:ring-indigo-500"
                         />
                       </td>
 
@@ -482,4 +471,4 @@ const MovimientoForm = ({ movementType }) => {
   );
 };
 
-export default MovimientoForm;
+export default MovimientoSalidaAjusteForm;
