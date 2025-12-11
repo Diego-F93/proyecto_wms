@@ -7,8 +7,10 @@ from loginApp.permissions import IsAdminGroup, IsSupervisorGroup, IsOperatorGrou
 
 
 from .serializers import IngresoOperacionInventarioSerializer
+from .serializersGet import OperacionInventario, OperacionInventarioListSerializer
 from .services import registrar_ingreso_lotes
 
+from .models import Transaccion 
 
 class OperacionInventarioViewSet(viewsets.ViewSet):
     """
@@ -102,3 +104,62 @@ class OperacionInventarioViewSet(viewsets.ViewSet):
             },
             status=status.HTTP_201_CREATED
         )
+
+from rest_framework import viewsets, permissions
+from django.utils.dateparse import parse_date
+from django.db.models import Prefetch
+
+
+class OperacionInventarioViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    GET /api/operaciones/
+    GET /api/operaciones/{id}/
+
+    Filtros:
+    - ?tipo=ENTRADA|SALIDA|AJUSTE
+    - ?fecha_desde=YYYY-MM-DD
+    - ?fecha_hasta=YYYY-MM-DD
+    - ?sku=COD-SKU
+    - ?usuario_id=ID
+    """
+    queryset = OperacionInventario.objects.all().order_by('-fecha')
+    serializer_class = OperacionInventarioListSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+
+        qs = qs.prefetch_related(
+            Prefetch(
+                'transacciones',
+                queryset=Transaccion.objects.select_related('lote', 'lote__sku')
+            ),
+            'usuario'
+        )
+
+        tipo = self.request.query_params.get('tipo')
+        fecha_desde = self.request.query_params.get('fecha_desde')
+        fecha_hasta = self.request.query_params.get('fecha_hasta')
+        sku = self.request.query_params.get('sku')
+        usuario_id = self.request.query_params.get('usuario_id')
+
+        if tipo:
+            qs = qs.filter(tipo=tipo)
+
+        if fecha_desde:
+            d = parse_date(fecha_desde)
+            if d:
+                qs = qs.filter(fecha__date__gte=d)
+
+        if fecha_hasta:
+            d = parse_date(fecha_hasta)
+            if d:
+                qs = qs.filter(fecha__date__lte=d)
+
+        if usuario_id:
+            qs = qs.filter(usuario_id=usuario_id)
+
+        if sku:
+            qs = qs.filter(transacciones__lote__sku__sku=sku).distinct()
+
+        return qs

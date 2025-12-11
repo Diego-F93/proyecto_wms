@@ -9,6 +9,7 @@ import Producto from './catalogo/producto';
 import DashboardPrincipal from './dashboard/Dashboardprincipal';
 import DashboardEjecutivo from './dashboard/DashboardEjecutivo';
 import OperacionInventario from './inventario/operacionInventario';
+import HistorialMovimientos from './inventario/movimientos';
 
 
 
@@ -24,7 +25,7 @@ export default function HomePublic() {
                 return <DashboardPrincipal />;
             
             case 'lista_movimientos':
-                return <SinPermiso />;
+                return <HistorialMovimientos />;
             case 'registrar_es':
                 return <OperacionInventario />;
             case 'productos':
