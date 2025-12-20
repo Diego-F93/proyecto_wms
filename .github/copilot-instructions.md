@@ -1,68 +1,61 @@
-Purpose
-This file gives focused, actionable guidance to AI coding agents working in this repository so they can be productive immediately.
+# WMS Project - AI Coding Agent Instructions
 
-Architecture (high level)
-- Backend: Django REST API in `backend/` (project: `wmsApp`). Settings: `backend/wmsApp/settings.py`.
-- Frontend: React app in `frontend/` (CRA). Key code: `frontend/src/context/AuthContext.jsx`, `frontend/src/components/ProtectedRoute.jsx`, `frontend/src/pages/LoginPage.jsx`.
-- Authentication: custom user model `loginApp.CustomUser` in `backend/loginApp/models.py`. `AUTH_USER_MODEL` is set in settings.
-- Auth flow: DRF + `rest_framework_simplejwt`. Login endpoint: `POST /api/login/` (see `backend/loginApp/views.py`). Token endpoints: `POST /api/token/` and `POST /api/token/refresh/` (see `backend/loginApp/urls.py`).
+## Architecture Overview
+This is a Warehouse Management System (WMS) with a React frontend and Django REST API backend, using MySQL database. The system manages inventory through categories, products, lots, and operations (entries, exits, adjustments).
 
-Important project-specific patterns
-- Custom user: Email is `USERNAME_FIELD`, required fields include `first_name`, `last_name`, `rut`. Manager: `backend/loginApp/models.py -> CustomUserManager` builds `username` from names.
-- Groups are created automatically on migrate: `grupos = ['Administrador','Supervisor','Operador']` and `post_migrate` receiver in `backend/loginApp/models.py`.
-- Serializer: `backend/loginApp/serializer.py` returns `groups` as names (SlugRelatedField) and hashes passwords via `make_password` in `validate_password`.
-- Frontend expects token payload: `{ access, refresh, user }` returned from `POST /api/login/`. `AuthContext` stores `access`, `refresh`, and `user` in `localStorage` and exposes `hasRole()` which checks `user.groups` names.
-- Protected routes: `frontend/src/components/ProtectedRoute.jsx` enforces authentication and role checks using group names above.
+- **Frontend**: React SPA with Bootstrap UI, JWT authentication via localStorage, axios for API calls
+- **Backend**: Django 5.2 with DRF, JWT auth, custom user model (email-based), role-based permissions (Administrador/Supervisor/Operador)
+- **Database**: MySQL with PyMySQL driver
+- **Key Models**: CustomUser (loginApp), Categoria/Producto/Lote (catalogo), OperacionInventario/Transaccion (operaciones)
 
-Key files to inspect for changes
-- `backend/wmsApp/settings.py` — DB, CORS, JWT lifetimes, `AUTH_USER_MODEL`.
-- `backend/loginApp/models.py` — custom user, group creation.
-- `backend/loginApp/serializer.py` — how password and groups are serialized.
-- `backend/loginApp/views.py` — login/logout behavior and token payload returned.
-- `backend/loginApp/urls.py` — token endpoints and login/logout routes.
-- `frontend/src/context/AuthContext.jsx` — where tokens are stored/used and how login/logout works.
-- `frontend/src/components/ProtectedRoute.jsx` — route protection and role semantics.
+## API Endpoints
+- **Authentication**:
+  - `POST /api/login/` - Login (email, password) → returns access/refresh tokens and user data
+  - `POST /api/logout/` - Logout
+  - `POST /api/token/` - Obtain JWT token pair
+  - `POST /api/token/refresh/` - Refresh access token
 
-Developer workflows & commands (PowerShell)
-- Backend setup (recommended):
-  ```powershell
-  cd backend
-  python -m venv .venv
-  .\.venv\Scripts\Activate
-  pip install django djangorestframework djangorestframework-simplejwt pymysql django-cors-headers
-  python manage.py migrate
-  python manage.py createsuperuser
-  python manage.py runserver 8000
-  ```
-- Frontend setup:
-  ```powershell
-  cd frontend
-  npm install
-  npm start
-  ```
-- Notes:
-  - `backend/wmsApp/settings.py` is currently configured for MySQL (pymysql). A `db.sqlite3` file is present in the repo; confirm which DB you want to use and update `DATABASES` or env variables accordingly.
-  - JWT `ACCESS_TOKEN_LIFETIME` is short (10 minutes); refresh token lifetime is 1 day. Adjust in settings when changing client behavior.
+- **Catalog (api/catalogo/)**:
+  - `GET /api/catalogo/categorias/` - List categories
+  - `POST /api/catalogo/categorias/` - Create category
+  - `GET /api/catalogo/categorias/{id}/` - Retrieve category
+  - `PUT /api/catalogo/categorias/{id}/` - Update category
+  - `DELETE /api/catalogo/categorias/{id}/` - Soft delete category (toggle estado)
+  - `GET /api/catalogo/productos/` - List products
+  - `POST /api/catalogo/productos/` - Create product
+  - `GET /api/catalogo/productos/{sku}/` - Retrieve product
+  - `PUT /api/catalogo/productos/{sku}/` - Update product
+  - `DELETE /api/catalogo/productos/{sku}/` - Soft delete product
+  - `GET /api/catalogo/lotes/` - List lots
+  - `POST /api/catalogo/lotes/` - Create lot
+  - `GET /api/catalogo/lotes/{id}/` - Retrieve lot
+  - `PUT /api/catalogo/lotes/{id}/` - Update lot
+  - `DELETE /api/catalogo/lotes/{id}/` - Soft delete lot
 
-API examples
-- Login request (frontend uses this shape):
-  POST http://localhost:8000/api/login/
-  Body: `{ "email": "user@example.com", "password": "secret" }`
-  Response: `{ "refresh": "...", "access": "...", "user": { id, email, first_name, last_name, groups: ["Administrador"] } }`
-- Token refresh endpoints: `POST /api/token/` and `POST /api/token/refresh/` (standard SimpleJWT views wired in `loginApp/urls.py`).
+- **Operations (api/operacion/)**:
+  - `POST /api/operacion/ingreso/` - Create inventory entry operation (with lots)
+  - `GET /api/operacion/lista/` - List operations (with filters: tipo, fecha_desde, fecha_hasta, sku, usuario_id)
+  - `GET /api/operacion/lista/{id}/` - Retrieve operation details
 
-Guidance for changes
-- Do not change `AUTH_USER_MODEL` lightly — migrations and admin integration depend on it.
-- If you change the user shape or group names, update both backend serializer and frontend `AuthContext`/`ProtectedRoute` accordingly.
-- When adding new permission checks, prefer using group-name checks (existing pattern) or add DRF permission classes; keep frontend `hasRole()` compatible with backend `groups` serialization.
+## Development Workflows
+- **Backend**: `cd backend && python manage.py runserver` (port 8000), `python manage.py makemigrations && python manage.py migrate`
+- **Frontend**: `cd frontend && npm start` (port 3000), CORS configured for localhost:3000
+- **Database**: MySQL 'wms' database, root user no password (dev only)
+- **Auth Flow**: Login via `/api/login/`, stores JWT tokens in localStorage, refresh via `/api/token/refresh/`
 
-Where to look when debugging auth problems
-- Inspect `backend/loginApp/views.py` and `backend/loginApp/serializer.py` (token creation, returned payload).
-- Check `backend/wmsApp/settings.py` for CORS and CSRF trusted origins; frontend expects `http://localhost:3000`.
-- Look at browser `localStorage` keys: `access`, `refresh`, `user` (set by `AuthContext`).
+## Code Patterns
+- **Views**: Use ModelViewSet for CRUD, override destroy for soft delete, custom lookup_field for Producto (sku)
+- **Serializers**: Standard DRF serializers, include computed fields like stock_actual
+- **Frontend Components**: Use React Router for protected routes, AuthContext for state management
+- **Error Handling**: Return 404/400 with detail messages in Spanish
 
-If you need clarification
-- Ask the repo owner which DB is intended (MySQL vs included `db.sqlite3`).
-- Ask about desired token lifetimes and whether the frontend should auto-refresh tokens.
-
-Please review this file and tell me any unclear or missing areas you want emphasized (build steps, secrets management, CI, or coding style rules).
+## Reference Files
+- [backend/wmsApp/settings.py](backend/wmsApp/settings.py) - Django config, installed apps, JWT settings
+- [backend/loginApp/models.py](backend/loginApp/models.py) - CustomUser model and manager
+- [backend/operaciones/models.py](backend/operaciones/models.py) - Inventory operation models
+- [frontend/src/context/AuthContext.jsx](frontend/src/context/AuthContext.jsx) - Frontend auth logic
+- [diagramas/diag Componentes.mmd](diagramas/diag Componentes.mmd) - System component diagram
+- [diagramas/modelo_datos.mmd](diagramas/modelo_datos.mmd) - Data model ER diagram
+- [diagramas/estructura_codigo.mmd](diagramas/estructura_codigo.mmd) - Source code structure mindmap
+- [diagramas/estructura_carpetas.mmd](diagramas/estructura_carpetas.mmd) - Main folder structure flowchart</content>
+<parameter name="filePath">c:\Users\diego\OneDrive\Desktop\proyecto_wms\.github\copilot-instructions.md

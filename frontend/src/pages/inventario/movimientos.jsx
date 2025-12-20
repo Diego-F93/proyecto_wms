@@ -102,6 +102,14 @@ const HistorialMovimientos = () => {
     fetchMovimientos();
   };
 
+  const colorClass = {
+  entrada: "text-green-600",
+  salida: "text-red-600",
+  ajuste_pos: "text-orange-600",
+  ajuste_neg: "text-orange-600",
+};
+
+
   return (
     <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-8">
       <div className="container mx-auto">
@@ -173,7 +181,7 @@ const HistorialMovimientos = () => {
                       scope="col"
                       className="px-6 py-3 font-medium"
                     >
-                      Producto (SKU)
+                      Motivo
                     </th>
                     <th
                       scope="col"
@@ -232,13 +240,13 @@ const HistorialMovimientos = () => {
                         {mov.codigo || mov.id || "N/D"}
                       </th>
                       <td className="px-6 py-4">
-                        {mov.producto_sku || mov.sku || "N/D"}
+                        {mov.motivo_general || "N/D"}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className={`px-6 py-4 ${colorClass[mov.tipo]}`}>
                         {getTipoBadge(mov.tipo)}
                       </td>
                       <td className="px-6 py-4 font-semibold text-gray-800">
-                        {formatCantidad(mov.tipo, mov.cantidad)}
+                        {formatCantidad(mov.tipo, mov.total_unidades)}
                       </td>
                       <td className="px-6 py-4">
                         {formatFechaHora(

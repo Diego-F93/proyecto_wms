@@ -1,0 +1,30 @@
+graph TD
+    A[proyecto_wms] --> B[backend]
+    A --> C[frontend]
+    A --> D[BD Backups]
+    A --> E[diagramas]
+    A --> F[.github]
+
+    B --> B1[catalogo]
+    B --> B2[loginApp]
+    B --> B3[operaciones]
+    B --> B4[wmsApp]
+    B --> B5[media]
+    B --> B6[manage.py]
+
+    C --> C1[public]
+    C --> C2[src]
+    C --> C3[package.json]
+    C --> C4[README.md]
+
+    C2 --> C21[components]
+    C2 --> C22[context]
+    C2 --> C23[pages]
+    C2 --> C24[utils]
+    C2 --> C25[App.js]
+
+    E --> E1[modelo_datos.mmd]
+    E --> E2[estructura_codigo.mmd]
+    E --> E3[diag Componentes.mmd]
+
+    F --> F1[copilot-instructions.md]

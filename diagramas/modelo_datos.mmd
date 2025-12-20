@@ -1,0 +1,67 @@
+erDiagram
+    CustomUser {
+        string email PK
+        string rut UK
+        string first_name
+        string last_name
+        string area
+        boolean is_active
+    }
+
+    Categoria {
+        int idCategoria PK
+        string nombre UK
+        text descripcion
+        boolean estado
+    }
+
+    Producto {
+        string sku PK
+        string nombre UK
+        text descripcion
+        int idCategoria FK
+        decimal precio_venta
+        boolean estado
+    }
+
+    Lote {
+        int idLote PK
+        string n_serie UK
+        string sku FK
+        decimal precio_compra
+        int cantidad
+        date fechaEntrada
+        date fechaVencimiento
+        boolean disponible
+        string motivo
+    }
+
+    OperacionInventario {
+        int id PK
+        string codigo UK
+        string tipo
+        datetime fecha
+        int usuario FK
+        string documento_referencia
+        string motivo_general
+    }
+
+    Transaccion {
+        int id PK
+        int operacion FK
+        int lote FK
+        int usuario FK
+        string id_transaccion UK
+        datetime fecha_transaccion
+        string tipo
+        int cantidad
+        string motivo
+    }
+
+    %% Relationships
+    CustomUser ||--o{ OperacionInventario : "1:N (usuario)"
+    CustomUser ||--o{ Transaccion : "1:N (usuario)"
+    Categoria ||--o{ Producto : "1:N (idCategoria)"
+    Producto ||--o{ Lote : "1:N (sku)"
+    OperacionInventario ||--o{ Transaccion : "1:N (operacion)"
+    Lote ||--o{ Transaccion : "1:N (lote)"
