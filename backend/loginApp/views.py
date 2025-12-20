@@ -1,10 +1,12 @@
 from django.contrib.auth import authenticate, login, logout
 from rest_framework_simplejwt import tokens as refreshtoken
 from .serializer import CustomUserSerializer
-from rest_framework import status
+from rest_framework import viewsets, status, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import APIView
 
+
+from .permissions import IsAdminGroup
 
 
 class LoginView(APIView):
@@ -40,3 +42,14 @@ class LogoutView(APIView):
         return Response(status=status.HTTP_200_OK)
     
 
+class Userlist(viewsets.ModelViewSet):
+    serializer_class = CustomUserSerializer
+    queryset = CustomUserSerializer.Meta.model.objects.all()
+    
+    # permission_classes = [IsAdminGroup]
+    
+    def get(self, request):
+        users = CustomUserSerializer(request.user)
+        return Response(users.data, status=status.HTTP_200_OK)
+        
+        
