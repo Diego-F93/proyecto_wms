@@ -43,6 +43,20 @@ class LogoutView(APIView):
         return Response(status=status.HTTP_200_OK)
     
 
+class SignupView(APIView):
+    serializer_class = CustomUserSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+
+        return Response(
+            {"detail": f"Usuario {user.email} creado exitosamente."},
+            status=status.HTTP_201_CREATED)
+
+
+
 class Userlist(viewsets.ModelViewSet):
     serializer_class = CustomUserSerializer
     queryset = CustomUserSerializer.Meta.model.objects.all()

@@ -104,7 +104,7 @@ export default function PanelUsuarios() {
                         }
                         >{u.is_active ? "Activo" : "Inactivo"}</td>
 
-                        <td className="px-6 py-4 text-center">
+                        <td className="px-2 py-4 text-center">
                         <button
                             // onClick={() => onEditarUsuario(u)}
                             className="font-medium text-indigo-600 hover:underline mr-4"
@@ -120,13 +120,13 @@ export default function PanelUsuarios() {
                                 : "font-medium text-green-600 hover:underline"
                             }
                         >
-                            {u.is_active ? "Desactivar" : "Activar"}
+                            {u.is_active ? "Desactivar " : "Activar "}
                         </button>
                         
-                        <button className="font-medium text-green-600 hover:underline mr-4">
+                        <button className="px-2 py-4 font-medium text-green-600 hover:underline mr-4">
                             Reset Password
                         </button>
-
+                        
                         </td>
                     </tr>
                     ))}

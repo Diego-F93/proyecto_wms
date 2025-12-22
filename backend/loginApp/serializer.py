@@ -9,7 +9,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(required=True, max_length=30)
     last_name = serializers.CharField(required=True, max_length=30)
     password = serializers.CharField(write_only=True, required=True, min_length=8)
-    is_active = serializers.BooleanField(read_only=True)
+    is_active = serializers.BooleanField(read_only=True, default=False)
     groups = serializers.SlugRelatedField(
         many=True,
         read_only=True,
