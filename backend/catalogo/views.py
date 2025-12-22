@@ -15,7 +15,7 @@ from loginApp.permissions import IsAdminGroup, IsSupervisorGroup, IsOperatorGrou
 class CategoriaViewSet(viewsets.ModelViewSet): # Vista para el modelo Categoria
     queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
-    #permission_classes = [IsAuthenticated  & (IsAdminGroup | IsSupervisorGroup)] 
+    permission_classes = [IsAuthenticated  & (IsAdminGroup | IsSupervisorGroup)] 
 
     def destroy(self, request, *args, **kwargs):
         try:

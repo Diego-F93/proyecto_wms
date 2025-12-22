@@ -10,6 +10,7 @@ import DashboardPrincipal from './dashboard/Dashboardprincipal';
 import DashboardEjecutivo from './dashboard/DashboardEjecutivo';
 import OperacionInventario from './inventario/operacionInventario';
 import HistorialMovimientos from './inventario/movimientos';
+import PanelUsuarios from './administracion/panelUsuarios';
 
 
 export default function HomePublic() {
@@ -35,7 +36,7 @@ export default function HomePublic() {
             case 'dashboard_ejecutivo':
                 return <DashboardEjecutivo/>;
             case 'usuarios_y_roles':
-                return <EnConstruccion />;
+                return <PanelUsuarios />;
             case 'alertas_y_umbrales':
                 return <EnConstruccion />; 
             case 'mantenimiento':

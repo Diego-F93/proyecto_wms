@@ -3,6 +3,7 @@ from rest_framework_simplejwt import tokens as refreshtoken
 from .serializer import CustomUserSerializer
 from rest_framework import viewsets, status, permissions
 from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import APIView
 
 
@@ -45,11 +46,52 @@ class LogoutView(APIView):
 class Userlist(viewsets.ModelViewSet):
     serializer_class = CustomUserSerializer
     queryset = CustomUserSerializer.Meta.model.objects.all()
-    
+
     # permission_classes = [IsAdminGroup]
     
     def get(self, request):
-        users = CustomUserSerializer(request.user)
-        return Response(users.data, status=status.HTTP_200_OK)
+        try: 
+            users = CustomUserSerializer(request.user)
+        except Exception as e:
+            return Response(
+                {"detail": f"Error inesperado: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    
+    def destroy(self, request, pk=None):
+        user = self.get_object()
+        if user.id == request.user.id:
+            return Response(
+                {"detail": "No se puede desactivar al usuario actual."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        else:       
+            user.is_active = not user.is_active
+            user.save(update_fields= ["is_active"])
+
+            return Response({"detail": f"Usuario : {user.email} ha sido {"desactivado" if not user.is_active else "activado"}"},
+                status=status.HTTP_204_NO_CONTENT)
         
+    def password_reset(self, request, pk=None):
+        try:
+            user = self.get_object()
+        except CustomUserSerializer.Meta.model.DoesNotExist:
+            return Response(
+                {"detail": "Usuario no encontrado."}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
         
+        except Exception as e:
+            return Response(
+                {"detail": f"Error inesperado: {str(e)}" },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        new_password = CustomUserSerializer.Meta.model.objects.make_random_password()
+        user.set_password(new_password)
+        user.save()
+
+        return Response(
+            {"new_password": new_password},
+            status=status.HTTP_200_OK
+        )
