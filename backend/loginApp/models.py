@@ -52,9 +52,9 @@ class CustomUserManager(UserManager):
 class CustomUser(AbstractUser): 
     email = models.EmailField(unique=True, max_length=150) # Campo de email Unico
     rut = models.CharField(unique=True, max_length=12) # Campo RUT unico
-    area = models.CharField(max_length=100, blank=True, null=True, default=None) # Area de trabajo
-    is_active = models.BooleanField(default=False) # Estado de cuenta
-    groups = models.ManyToManyField(Group, related_name='customuser_set', blank=True) # Grupos del usuario
+    area = models.CharField(max_length=100, blank=True, null=True, default=None) # Area de trabajo #No utilizada actualmente 
+    is_active = models.BooleanField(default=False) # Estado de cuenta 
+    groups = models.ManyToManyField(Group, related_name='customuser_set', blank=True) # Grupos del usuario #
 
     
     USERNAME_FIELD = 'email' # Usa el Email como nombre de usuario
@@ -86,7 +86,6 @@ class CustomUser(AbstractUser):
             'name': self.first_name,
             'last_name': self.last_name,
             'email': self.email,
-            'area': self.area,
             'is_active': self.is_active,
         }
         return json.dumps(usuario) # Retorna la informacion del usuario en formato JSON

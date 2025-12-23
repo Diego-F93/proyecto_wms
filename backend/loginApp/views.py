@@ -45,8 +45,13 @@ class LogoutView(APIView):
 
 class SignupView(APIView):
     serializer_class = CustomUserSerializer
-
     def post(self, request):
+        if request.data.get("password") != request.data.get("password2"):
+            return Response(
+                {"detail": "Las contraseñas no coinciden."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
