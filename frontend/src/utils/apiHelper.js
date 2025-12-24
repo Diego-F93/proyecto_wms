@@ -1,5 +1,6 @@
 import axios from 'axios'
 import React, { useState } from 'react'
+import Swal from 'sweetalert2';
 
 const backend = axios.create(   // Direccion base del Backend para peticiones API
     {
@@ -100,37 +101,40 @@ backend.interceptors.response.use(
  */
 
 export async function Api(url,typeMethod = 'GET', values = null) { //Funcion para ejecutar peticiones API
-    try {
-        let response;
+    const method = typeMethod.toUpperCase();
+    const sensibleMethods = ["PUT", "PATCH", "DELETE"];
 
-        switch (typeMethod.toUpperCase()){ 
-            case "GET":
-                response = await backend.get(url)
-                break;
-                
-            case "POST":
-                response = await backend.post(url, values)
-                break;
-                
-            case "PUT":
-                response = await backend.put(url, values)
-                break;
+    if (sensibleMethods.includes(method)) {
+        const result = await Swal.fire({
+            title: '¿Confirmar acción?',
+            text: method === "DELETE" ? "¿Esta seguro de realizar esta operacion?" : "Se modificarán los datos actuales.",
+            icon: method === "DELETE" ? 'warning' : 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, continuar',
+            cancelButtonText: 'Cancelar'
+        });
 
-            case "PATCH":
-                response = await backend.patch(url, values)
-                break;
-
-            case "DELETE":
-                response = await backend.delete(url)
-                break;
-
-            default:
-                throw new Error(`Metodo no soportado ${typeMethod}`);
+        // Si el usuario cierra el modal o hace clic en cancelar
+        if (!result.isConfirmed) {
+            return { cancelled: true };
         }
-        return response.data
-    } catch (error) {
-        console.error("Error en API", error.response?.data || error);
-        throw error;
+    }
 
+    try {
+        // Ejecución normal de la petición
+        const config = { method, url, data: values };
+        const response = await backend(config);
+        
+        // Opcional: Mostrar éxito después de la petición
+        if (sensibleMethods.includes(method)) {
+            Swal.fire('¡Éxito!', 'La operación se realizó correctamente.', 'success');
+        }
+
+        return response.data;
+    } catch (error) {
+        Swal.fire('Error', 'No se pudo completar la operación.', 'error');
+        throw error;
     }
 }
