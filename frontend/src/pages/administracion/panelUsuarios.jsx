@@ -1,10 +1,19 @@
 import React, {useState, useEffect} from "react";
+import Modal from "../auxiliares/Modal";
+import UserForm from "../auxiliares/formSignUp";
+import { useAuth  } from "../../context/AuthContext";
 
 import { Api } from "../../utils/apiHelper";
 
 export default function PanelUsuarios() {
 
     const [usuarios, setusuarios] = useState([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [mode, setMode] = useState("create"); // "create" | "edit"
+    const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
+
+    const { user } = useAuth();
+    const isAdmin = user.groups.includes("Administrador");
 
     const rolesDeUsuario = {Admin: "Administrador", 
                             Manager: "Supervisor",
@@ -34,6 +43,33 @@ export default function PanelUsuarios() {
         }
     }
 
+    const onCrearUsuario = () => {
+    setMode("create");
+    setUsuarioSeleccionado(null);
+    setIsModalOpen(true);
+  };
+
+  const onEditarUsuario = (usuario) => {
+    setMode("edit");
+    setUsuarioSeleccionado(usuario);
+    setIsModalOpen(true);
+  };
+
+const onSubmitForm = async (data) => {
+  try {
+    if (mode === "create") {
+      await Api("signup/", "POST", data);
+    } else {
+      await Api(`userlist/${usuarioSeleccionado.id}/`, "PATCH", data);
+    }
+
+    await CargarUsuarios();
+    setIsModalOpen(false);
+  } catch (error) {
+    console.error("Error al guardar usuario", error);
+  }
+};
+
 
     return (
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-8">
@@ -45,7 +81,7 @@ export default function PanelUsuarios() {
             </h2>
 
             <button
-                // onClick={onAgregarUsuario}
+                onClick={onCrearUsuario}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg flex items-center space-x-2"
             >
                 <svg
@@ -106,7 +142,7 @@ export default function PanelUsuarios() {
 
                         <td className="px-2 py-4 text-center">
                         <button
-                            // onClick={() => onEditarUsuario(u)}
+                            onClick={() => onEditarUsuario(u)}
                             className="font-medium text-indigo-600 hover:underline mr-4"
                         >
                             Editar
@@ -134,6 +170,15 @@ export default function PanelUsuarios() {
                 </table>
             </div>
             </div>
+            <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+                <UserForm
+                mode={mode}
+                isAdmin={isAdmin}
+                initialData={usuarioSeleccionado || {}}
+                onSubmit={onSubmitForm}
+                onCancel={() => setIsModalOpen(false)}
+                />
+            </Modal>
         </div>
         </main>
     );

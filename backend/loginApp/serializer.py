@@ -52,7 +52,8 @@ class CustomUserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"password": "Las contraseñas no coinciden."})
 
         try:
-            validate_password(pw1)
+            if pw1 is not None:
+                validate_password(pw1)
         except DjangoValidationError as e:
             raise serializers.ValidationError({"password": list(e.messages)})
 

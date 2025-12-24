@@ -1,4 +1,4 @@
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, get_user_model
 from rest_framework_simplejwt import tokens as refreshtoken
 from .serializer import CustomUserSerializer
 from rest_framework import viewsets, status, permissions
@@ -27,6 +27,11 @@ class LoginView(APIView):
                     'user': CustomUserSerializer(user).data
                 },
                 status=status.HTTP_200_OK)
+        elif User.objects.filter(is_active=False, email=email).exists():
+            return Response(
+                {"detail":"El usuario no esta activado. Por favor, contacte al administrador."},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
         # Si no es correcto devolvemos un error en la petición
         return Response(
@@ -62,21 +67,16 @@ class SignupView(APIView):
 
 
 
+User = get_user_model()
+
 class Userlist(viewsets.ModelViewSet):
     serializer_class = CustomUserSerializer
-    queryset = CustomUserSerializer.Meta.model.objects.all()
-
+    queryset = User.objects.all()
     # permission_classes = [IsAdminGroup]
-    
-    def get(self, request):
-        try: 
-            users = CustomUserSerializer(request.user)
-        except Exception as e:
-            return Response(
-                {"detail": f"Error inesperado: {str(e)}"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-    
+
+    # Opcional: ordenar
+    def get_queryset(self):
+        return User.objects.all().order_by("id")
     def destroy(self, request, pk=None):
         user = self.get_object()
         if user.id == request.user.id:

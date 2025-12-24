@@ -31,12 +31,12 @@ export function AuthProvider({ children }) {
       },
       body: JSON.stringify({ email, password }),
     });
-
+    const data = await response.json();
     if (!response.ok) {
-      throw new Error("Credenciales inválidas");
+      console.log("Response not ok: ", data);
+      throw new Error(data.detail || "Error desconocido");
     }
 
-    const data = await response.json();
 
     const token = data.access;
     const loggedUser = data.user;

@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import UserForm  from './auxiliares/formSignUp.jsx';
+import Modal from './auxiliares/Modal.jsx';
+import { Api } from '../utils/apiHelper.js';
 
 function LoginPage() {
   const { login } = useAuth();
@@ -10,17 +13,32 @@ function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [mode, setMode] = useState("create"); // "create" | "edit"
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     try {
       await login(email, password);
       navigate('/main');
-  } catch {
-      setError("Error de inicio de sesión. Verifica tus credenciales.");
-      
-  }
+    } catch (err) {
+      setError(`Problemas al iniciar sesión, ${err || "Desconocido"} `);
   };
+
+  };
+
+  const onSubmitForm = async (data) => {
+    try {
+      if (mode === "create") {
+        await Api("signup/", "POST", data);
+      }
+    } catch (error) {
+      console.error("Error al crear usuario: ", error);
+    }
+
+    setIsModalOpen(false);
+  }
 
   return (
     <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-8 border border-gray-100 mx-auto mt-10">
@@ -88,7 +106,7 @@ function LoginPage() {
 
         <button
           type="button"
-          onClick={() => (window.location.href = 'registro.html')}
+          onClick={() => (setIsModalOpen(true), setMode("create"))}
           className="w-full flex justify-center py-3 px-4 border border-indigo-200 rounded-lg shadow-sm text-sm font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 transition-transform transform hover:scale-105"
         >
           Solicitar acceso al administrador
@@ -103,6 +121,15 @@ function LoginPage() {
           </a>
         </div>
       </form>
+      <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+                      <UserForm
+                      mode={mode}
+                      isAdmin={false}
+                      initialData={{}}
+                      onSubmit={onSubmitForm}
+                      onCancel={() => setIsModalOpen(false)}
+                      />
+      </Modal>
     </div>
   );
 }

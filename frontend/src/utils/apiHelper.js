@@ -116,6 +116,10 @@ export async function Api(url,typeMethod = 'GET', values = null) { //Funcion par
                 response = await backend.put(url, values)
                 break;
 
+            case "PATCH":
+                response = await backend.patch(url, values)
+                break;
+
             case "DELETE":
                 response = await backend.delete(url)
                 break;
