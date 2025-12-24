@@ -210,6 +210,7 @@ export default function Producto() {
                         >
                           Editar
                         </button>
+                        {(user.groups.includes("Administrador")) && (
                         <button
                           type="button"
                           className={
@@ -224,6 +225,7 @@ export default function Producto() {
                         >
                           {m.estado ? "Desactivar" : "Activar"}  
                         </button>
+                        )}
                       </td>
                     )}
                   </tr>

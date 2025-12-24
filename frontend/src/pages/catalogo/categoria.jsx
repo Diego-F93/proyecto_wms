@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Api } from "../../utils/apiHelper";
 import CategoriaCrearModal from "../auxiliares/formCategoria";
+import { useAuth } from "../../context/AuthContext";
 
 export default function Categoria() {
+  const { user, isAuthenticated, logout } = useAuth();
   const [modalCrearOpen, setModalCrearOpen] = useState(false);
   const [modalEditarOpen, setModalEditarOpen] = useState(false);
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(null);
@@ -157,8 +159,8 @@ export default function Categoria() {
                       >
                         Editar
                       </button>
-
-                      <button
+                      {(user.groups.includes("Administrador")) && (
+                        <button
                         type="button"
                         className={
                           "font-medium px-3 py-1 rounded hover:underline " +
@@ -170,6 +172,8 @@ export default function Categoria() {
                       >
                         {m.estado ? "Desactivar" : "Activar"}
                       </button>
+                      )}
+                      
                     </td>
                   </tr>
                 ))}
