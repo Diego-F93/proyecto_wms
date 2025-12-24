@@ -15,7 +15,14 @@ from loginApp.permissions import IsAdminGroup, IsSupervisorGroup, IsOperatorGrou
 class CategoriaViewSet(viewsets.ModelViewSet): # Vista para el modelo Categoria
     queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
-    permission_classes = [IsAuthenticated  & (IsAdminGroup | IsSupervisorGroup)] 
+    permission_classes = [IsAuthenticated  & (IsAdminGroup | IsSupervisorGroup)]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.groups.filter(name="Supervisor").exists():
+             return Categoria.objects.filter(estado=True)
+        return Categoria.objects.all()
+    
 
     def destroy(self, request, *args, **kwargs):
         try:
@@ -45,6 +52,12 @@ class ProductoViewSet(viewsets.ModelViewSet): # Vista para el modelo Producto
     serializer_class = ProductoSerializer
     lookup_field = "sku"
     lookup_value_regex = "[^/]+"
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.groups.filter(name="Supervisor" or "Operador").exists():
+             return Producto.objects.filter(estado=True)
+        return Producto.objects.all()
 
     def destroy(self, request, *args, **kwargs):
         try:

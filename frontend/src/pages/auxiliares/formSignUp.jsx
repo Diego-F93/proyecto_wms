@@ -164,17 +164,17 @@ export default function UserForm({
 
       <div className="flex gap-3 pt-2">
         <button
+          type="submit"
+          className="w-1/2 py-3 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700"
+        >
+          {isEdit ? "Guardar" : "Registrarme"}
+        </button>
+        <button
           type="button"
           onClick={onCancel}
           className="w-1/2 py-3 rounded-lg border border-gray-300"
         >
           Cancelar
-        </button>
-        <button
-          type="submit"
-          className="w-1/2 py-3 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700"
-        >
-          {isEdit ? "Guardar" : "Registrarme"}
         </button>
       </div>
     </form>
