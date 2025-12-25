@@ -42,6 +42,52 @@ class LoginView(APIView):
             {'detail': 'Credenciales inválidas'},
             status=status.HTTP_404_NOT_FOUND)
 
+class UserPasswordResetView(APIView):
+    """
+    POST /api/password-reset/
+    Body: { "email": "...", "rut": "..."}
+    Respuesta: new_password o mensaje de error 
+    """  
+    def post(self, request):
+        
+        success = False
+        if not request.data.get("email"):
+            raise ValidationError({"detail": "El campo email es obligatorio."})
+        email = request.data.get("email")
+        if not request.data.get("rut"):
+            raise ValidationError({"detail": "El campo RUT es obligatorio."})    
+        rut = request.data.get("rut")
+        try:
+            user = User.objects.filter(email=email, rut=rut).first()
+        except User.DoesNotExist:
+            return Response(
+                {"detail": "Usuario no encontrado."}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+            
+        except Exception as e:
+            return Response(
+                {"detail": f"Error inesperado: {str(e)}" },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        new_password = get_random_string(length=12)
+        user.set_password(new_password)
+        user.save()
+        success = True
+
+        send_custom_email(
+            subject= "Restablecimiento de contraseña",
+            recipient_list= [user.email],
+            template_name= "Password_reset.html",
+            context= {"user" : user, "new_password" : new_password, "success": success}
+        )
+
+        return Response(
+            {"detail": f"Contraseña restablecida correctamente. { new_password}"},
+            status=status.HTTP_200_OK
+        )
+
 
 class LogoutView(APIView):
     def post(self, request):
@@ -112,6 +158,7 @@ class Userlist(viewsets.ModelViewSet):
                 status=status.HTTP_204_NO_CONTENT)
         
     def password_reset(self, request, pk=None):
+        
         try:
             user = self.get_object()
         except CustomUserSerializer.Meta.model.DoesNotExist:

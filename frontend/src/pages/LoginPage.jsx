@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import UserForm  from './auxiliares/formSignUp.jsx';
+import PasswordResetForm from './auxiliares/formPasswordReset.jsx';
 import Modal from './auxiliares/Modal.jsx';
 import { Api } from '../utils/apiHelper.js';
 
@@ -14,6 +15,7 @@ function LoginPage() {
   const [error, setError] = useState('');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isResetPasswordModalOpen, setIsResetPasswordModalOpen] = useState(false);
   const [mode, setMode] = useState("create"); // "create" | "edit"
 
   const handleSubmit = async (e) => {
@@ -38,6 +40,16 @@ function LoginPage() {
     }
 
     setIsModalOpen(false);
+  }
+
+  const onSubmitPasswordResetForm = async (data) => {
+    try {
+      await Api("password-reset/", "POST", data);
+    } catch (error) {
+      console.error("Error al solicitar restablecimiento de contraseña: ", error);
+    }
+
+    setIsResetPasswordModalOpen(false);
   }
 
   return (
@@ -112,14 +124,12 @@ function LoginPage() {
           Solicitar acceso al administrador
         </button>
 
-        <div className="text-center">
-          <a
-            href="recuperar_contraseña.html"
-            className="text-sm font-medium text-indigo-600 hover:text-indigo-800 hover:underline"
-          >
+        <button 
+        type='button'
+        onClick={() => (setIsResetPasswordModalOpen(true))}
+        className="w-full flex justify-center py-3 px-4 border border-indigo-200 rounded-lg shadow-sm text-sm font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 transition-transform transform hover:scale-105">
             Olvidé la contraseña
-          </a>
-        </div>
+        </button>
       </form>
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
                       <UserForm
@@ -130,6 +140,15 @@ function LoginPage() {
                       onCancel={() => setIsModalOpen(false)}
                       />
       </Modal>
+
+      <Modal open={isResetPasswordModalOpen} onClose={() => setIsResetPasswordModalOpen(false)}>
+                      <PasswordResetForm
+                      initialData={{}}
+                      onSubmit={onSubmitPasswordResetForm}
+                      onCancel={() => setIsResetPasswordModalOpen(false)}
+                      />
+      </Modal>
+
     </div>
   );
 }
