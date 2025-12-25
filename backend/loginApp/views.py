@@ -6,6 +6,8 @@ from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import APIView
 
+from notificaciones.views import send_custom_email
+
 
 from .permissions import IsAdminGroup
 
@@ -61,6 +63,14 @@ class SignupView(APIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
+        # Enviar correo de bienvenida
+        send_custom_email(
+            subject= "Bienvenido a WMS Ticashop",
+            recipient_list= [user.email],
+            template_name= "welcome.html",
+            context= {"user" : user}
+        )
+
         return Response(
             {"detail": f"Usuario {user.email} creado exitosamente."},
             status=status.HTTP_201_CREATED)
@@ -87,6 +97,14 @@ class Userlist(viewsets.ModelViewSet):
         else:       
             user.is_active = not user.is_active
             user.save(update_fields= ["is_active"])
+
+            send_custom_email(
+                subject= "Cambio en el estado de su cuenta",
+                recipient_list= [user.email],
+                template_name= "Account_status_changes.html",
+                context= {"user" : user}
+            )
+
 
             return Response({"detail": f"Usuario : {user.email} ha sido {"desactivado" if not user.is_active else "activado"}"},
                 status=status.HTTP_204_NO_CONTENT)

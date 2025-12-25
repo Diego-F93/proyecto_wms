@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt', #Para autenticacion con JWT
     'loginApp', #App de login y gestion de usuarios
     'catalogo', #App de gestion de catalogo de productos
-    'operaciones' #App encargada de las operaciones de inventario (entradas, salidas, ajustes)
+    'operaciones', #App encargada de las operaciones de inventario (entradas, salidas, ajustes)
+    'notificaciones', #App encargada del envio de notificaciones por correo
 
     
 
@@ -180,3 +181,16 @@ SIMPLE_JWT = {
 }
 
 AUTH_USER_MODEL = "loginApp.CustomUser" # Modelo de usuario personalizado para la autentificacion de la App Login
+
+
+# Configuraion del servidor SMTP para el envio de notificaciones por correo // recuperacion de contraseñas. 
+# Configuracion ilustrativa utilizando Gmail SMTP.
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = "diego18.df@gmail.com"
+EMAIL_HOST_PASSWORD = 'sedtsbtmoqwiwpwz'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
