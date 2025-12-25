@@ -13,5 +13,6 @@ urlpatterns = [
     path('api/login/', LoginView.as_view(), name='login'), #Ruta para login
     path('api/logout/', LogoutView.as_view(), name='logout'), #Ruta para logout
     path('api/signup/', SignupView.as_view(), name= 'signup'), #Ruta para registro de usuarios
+    path('api/userlist/password-reset/<int:pk>/', Userlist.as_view({'post': 'password_reset'}), name='password-reset'), #Ruta para restablecer la contraseña de un usuario
     path('api/', include(routers.urls)),
 ]

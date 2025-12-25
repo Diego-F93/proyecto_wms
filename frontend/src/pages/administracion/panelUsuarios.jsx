@@ -70,6 +70,14 @@ const onSubmitForm = async (data) => {
   }
 };
 
+const PasswordReset = async (userId) => {
+    try {
+        const response = await Api (`userlist/password-reset/${userId}/` , "POST");
+        console.log("Respuesta de restablecimiento de contraseña: ", response);
+    } catch (error) {
+        console.error("Error al restablecer la contraseña: ", error);
+    }
+};
 
     return (
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-8">
@@ -159,7 +167,8 @@ const onSubmitForm = async (data) => {
                             {u.is_active ? "Desactivar " : "Activar "}
                         </button>
                         
-                        <button className="px-2 py-4 font-medium text-green-600 hover:underline mr-4">
+                        <button className="px-2 py-4 font-medium text-green-600 hover:underline mr-4"
+                            onClick={() => PasswordReset(u.id)}>
                             Reset Password
                         </button>
                         

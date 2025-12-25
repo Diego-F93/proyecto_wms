@@ -102,7 +102,7 @@ backend.interceptors.response.use(
 
 export async function Api(url,typeMethod = 'GET', values = null) { //Funcion para ejecutar peticiones API
     const method = typeMethod.toUpperCase();
-    const sensibleMethods = ["PUT", "PATCH", "DELETE"];
+    const sensibleMethods = ["POST","PUT", "PATCH", "DELETE"];
 
     if (sensibleMethods.includes(method)) {
         const result = await Swal.fire({

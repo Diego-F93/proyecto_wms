@@ -6,6 +6,8 @@ from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import APIView
 
+from django.utils.crypto import get_random_string
+
 from notificaciones.views import send_custom_email
 
 
@@ -82,7 +84,7 @@ User = get_user_model()
 class Userlist(viewsets.ModelViewSet):
     serializer_class = CustomUserSerializer
     queryset = User.objects.all()
-    # permission_classes = [IsAdminGroup]
+    permission_classes = [IsAdminGroup]
 
     # Opcional: ordenar
     def get_queryset(self):
@@ -124,11 +126,18 @@ class Userlist(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        new_password = CustomUserSerializer.Meta.model.objects.make_random_password()
+        new_password = get_random_string(length=12)
         user.set_password(new_password)
         user.save()
 
+        send_custom_email(
+            subject= "Restablecimiento de contraseña",
+            recipient_list= [user.email],
+            template_name= "Password_reset.html",
+            context= {"user" : user, "new_password" : new_password, "success": True}
+        )
+
         return Response(
-            {"new_password": new_password},
+            {"detail": f"Contraseña restablecida correctamente. { new_password}"},
             status=status.HTTP_200_OK
         )
