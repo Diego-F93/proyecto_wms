@@ -2,6 +2,7 @@ from rest_framework import status, viewsets, permissions
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ValidationError
+from rest_framework.views import APIView
 
 from loginApp.permissions import IsAdminGroup, IsSupervisorGroup, IsOperatorGroup
 
@@ -9,6 +10,7 @@ from loginApp.permissions import IsAdminGroup, IsSupervisorGroup, IsOperatorGrou
 from .serializers import IngresoOperacionInventarioSerializer
 from .serializersGet import OperacionInventario, OperacionInventarioListSerializer
 from .services import registrar_ingreso_lotes
+from .serializersMov import OperacionPorLoteSerializer
 
 from django.utils.dateparse import parse_date
 from django.db.models import Prefetch
@@ -162,3 +164,16 @@ class OperacionInventarioListaViewSet(viewsets.ReadOnlyModelViewSet):
             qs = qs.filter(transacciones__lote__sku__sku=sku).distinct()
 
         return qs
+
+
+class OperacionPorLoteCreateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = OperacionPorLoteSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        operacion = serializer.save()
+        return Response(
+            {"id": operacion.id, "codigo": operacion.codigo, "tipo": operacion.tipo},
+            status=status.HTTP_201_CREATED
+        )

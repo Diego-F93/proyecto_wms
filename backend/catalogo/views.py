@@ -3,6 +3,9 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
+from django.db.models import Sum, Q
+from django.db.models.functions import Coalesce
+
 # Modelos y Serializadores
 from .models import Categoria, Producto, Lote
 from .serializer import CategoriaSerializer, ProductoSerializer, LoteSerializer
@@ -55,9 +58,25 @@ class ProductoViewSet(viewsets.ModelViewSet): # Vista para el modelo Producto
 
     def get_queryset(self):
         user = self.request.user
-        if user.groups.filter(name="Supervisor" or "Operador").exists():
-             return Producto.objects.filter(estado=True)
-        return Producto.objects.all()
+        stockdisponible = self.request.query_params.get("stock_actual")
+
+        # Base queryset
+        qs = Producto.objects.all()
+
+        # Restricción por rol
+        if user.groups.filter(name__in=["Supervisor", "Operador"]).exists():
+            qs = qs.filter(estado=True)
+
+        # Filtro por stock
+        if stockdisponible == "gt:0":
+            qs = qs.annotate(
+            stock_actual_db=Coalesce(
+                Sum("lotes__cantidad", filter=Q(lotes__disponible=True)),
+                0
+            )
+        )
+
+        return qs
 
     def destroy(self, request, *args, **kwargs):
         try:
@@ -97,12 +116,30 @@ class ProductoViewSet(viewsets.ModelViewSet): # Vista para el modelo Producto
         return [perm() for perm in permission_classes]
 
 
-class LoteViewSet(viewsets.ModelViewSet): # Vista para el modelo Lote
+class LoteViewSet(viewsets.ModelViewSet):
     queryset = Lote.objects.all()
     serializer_class = LoteSerializer
-    
-    def get_permissions(self):
-        if self.action in ['list', 'retrieve']:
-            permission_classes = [permissions.IsAuthenticated,
-                                IsAdminGroup | IsSupervisorGroup | IsOperatorGroup]
+    permission_classes = [
+        IsAuthenticated & (IsAdminGroup | IsSupervisorGroup | IsOperatorGroup)
+    ]
+
+    def get_queryset(self):
+        qs = Lote.objects.all()
+        producto = self.request.query_params.get("producto")
+
+        Lote.objects.filter(sku_id=producto, disponible=True, cantidad__gt=0)
+
+        if producto:
+            qs = qs.filter(
+                sku=producto
+            ).order_by("fechaVencimiento", "precio_compra")
+
+        return qs
+
+    # def get_permissions(self):
+
+
+    #     if self.action in ['list', 'retrieve']:
+    #         permission_classes = [permissions.IsAuthenticated,
+    #                             IsAdminGroup | IsSupervisorGroup | IsOperatorGroup]
     
