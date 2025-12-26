@@ -4,7 +4,7 @@ import { Chart, registerables } from "chart.js";
 Chart.register(...registerables);
 
 export default function DashboardPrincipal() {
-  const [showDemoMsg, setShowDemoMsg] = useState(true);
+  const [showDemoMsg, setShowDemoMsg] = useState(false);
 
   const stockChartRef = useRef(null);
   const pedidosChartRef = useRef(null);

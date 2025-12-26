@@ -10,28 +10,28 @@ function getTipoBadge(tipo) {
     "text-xs font-medium px-2.5 py-0.5 rounded-full";
 
   switch (tipo) {
-    case "entrada":
+    case "ENTRADA":
       return (
         <span className={`${baseClasses} bg-green-100 text-green-800`}>
-          Entrada
+          ENTRADA
         </span>
       );
-    case "salida":
+    case "SALIDA":
       return (
         <span className={`${baseClasses} bg-red-100 text-red-800`}>
-          Salida
+          SALIDA
         </span>
       );
-    case "ajuste":
+    case "AJUSTE":
       return (
         <span className={`${baseClasses} bg-yellow-100 text-yellow-800`}>
-          Ajuste
+          AJUSTE_POS
         </span>
       );
-    case "transferencia":
+    case "AJUSTE_NEG":
       return (
         <span className={`${baseClasses} bg-blue-100 text-blue-800`}>
-          Transferencia
+          AJUSTE_NEG
         </span>
       );
     default:

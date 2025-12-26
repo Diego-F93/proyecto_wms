@@ -1,8 +1,23 @@
 import React, { useEffect, useRef, useState } from "react";
 import Chart from "chart.js/auto";
+import { Api } from "../../utils/apiHelper";
 
 export default function DashboardEjecutivo() {
   const [showDemoMsg, setShowDemoMsg] = useState(true);  // Mensaje temporal
+  const [nombreCategoria, setNombreCategoria] = useState([]);
+
+
+    // Cargar categorías
+  useEffect(() => {
+    async function categorias() {
+        const setDato = await Api("catalogo/categorias/", "GET");
+        console.log("categorias", setDato);
+        setNombreCategoria(setDato);
+    }
+      
+  categorias();
+    }, []);
+
 
   const valorChartRef = useRef(null);
   const rotacionChartRef = useRef(null);
@@ -15,12 +30,12 @@ export default function DashboardEjecutivo() {
       valorChartInstance.current = new Chart(ctx, {
         type: "pie",
         data: {
-          labels: ["Electrónica", "Hogar", "Ropa", "Juguetes"],
+          labels: nombreCategoria.map(e => e.nombre),
           datasets: [
             {
-              label: "Valor de Inventario",
-              data: [550000, 320000, 210000, 120000],
-              backgroundColor: ["#6366f1", "#38bdf8", "#34d399", "#f97316"],
+              label: "Productos por categoría",
+              data: nombreCategoria.map(e => e.productos_disponibles),
+              backgroundColor: ["#6366f1", "#38bdf8", "#34d399", "#f97316", "#f43f5e", "#e879f9", "#fbbf24"],
               borderColor: "#f9fafb",
               borderWidth: 4,
               hoverOffset: 8,
